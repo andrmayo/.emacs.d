@@ -8,22 +8,8 @@
 ;;; EMACS CORE PERFORMANCE SETTINGS
 ;;; ============================================================================
 
-;; Increase garbage collection threshold dramatically (default is ~800KB)
-;; Set to 100MB during normal operation, 1GB during startup
-(setq gc-cons-threshold 1000000000) ; 1 GB
-(setq gc-cons-percentage 0.6)
-
-;; Increase during startup, then reset
-(add-hook 'emacs-startup-hook
-          (lambda ()
-            (setq gc-cons-threshold 100000000 ; 100 MB
-                  gc-cons-percentage 0.1)))
-
 ;; Increase the amount of data Emacs reads from processes
 (setq read-process-output-max (* 1024 1024 4)) ; 4MB (default is 4KB)
-
-(setq column-number-mode t)
-(tool-bar-mode -1)
 
 ;; (setq inhibit-startup-screen t)
 (setq package-check-signature nil)
@@ -63,12 +49,19 @@
   (evil-mode 1))
 
 (setq ring-bell-function 'ignore)
+(setq column-number-mode t)
 
 
 (use-package exec-path-from-shell)
 (when (memq window-system '(mac ns x pgtk))
   (exec-path-from-shell-initialize))
 
+;; suppress launch page when emacs opens a file directly
+(setq inhibit-startup-screen
+      (cl-some #'file-exists-p command-line-args))
+
+
+;; vim-style local and global leaders
 (use-package general
     :config
     (general-create-definer leader-def
@@ -161,7 +154,8 @@
 (use-package ace-window
   :ensure t
   :init
-  (setq aw-dispatch-always t))
+  (setq aw-dispatch-always t)
+  :defer t)
 
 ;;; ============================================================================
 ;;; DISPLAY

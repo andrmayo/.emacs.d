@@ -206,11 +206,11 @@
 (with-eval-after-load 'vterm
   (define-key vterm-mode-map (kbd "<f12>") #'float-term-toggle))
 
+(use-package paredit)
+
 ;;; ============================================================================
 ;;; EVIL
 ;;; ============================================================================
-
-
 
 (use-package evil
   :init
@@ -233,13 +233,49 @@
 (use-package evil-collection)
 (evil-collection-init 'magit)
 
+;; Like nvim-suround
+;; ys for adding, ds for deleting, and cs for changing
+;; customized so that
+  ;; ┌─────────────┬───────────────────────────┐
+  ;; │     Key     │         Produces          │
+  ;; ├─────────────┼───────────────────────────┤
+  ;; │ ( or ) or b │ ( )                       │
+  ;; ├─────────────┼───────────────────────────┤
+  ;; │ [ or ]      │ [ ]                       │
+  ;; ├─────────────┼───────────────────────────┤
+  ;; │ { or } or B │ { }                       │
+  ;; ├─────────────┼───────────────────────────┤
+  ;; │ >           │ < >                       │
+  ;; ├─────────────┼───────────────────────────┤
+  ;; │ t or <      │ prompts for HTML tag      │
+  ;; ├─────────────┼───────────────────────────┤
+  ;; │ f           │ prompts for function name │
+  ;; └─────────────┴───────────────────────────┘
+
+(use-package evil-surround
+     :ensure t
+     :config
+     (global-evil-surround-mode 1)
+    (setq-default evil-surround-pairs-alist
+        '((?( . ("(" . ")"))
+        (?[ . ("[" . "]"))
+        (?{ . ("{" . "}"))
+        (?) . ("(" . ")"))
+        (?] . ("[" . "]"))
+        (?} . ("{" . "}"))
+        (?b . ("(" . ")"))
+        (?B . ("{" . "}"))
+        (?> . ("<" . ">"))
+        (?t . evil-surround-read-tag)
+        (?< . evil-surround-read-tag)
+        (?\C-f . evil-surround-prefix-function)
+        (?f . evil-surround-function))))
+
 ;; replaces Emac's linear undo
 (use-package undo-tree
   :config
   (global-undo-tree-mode)
   (evil-set-undo-system 'undo-tree))
-
-(use-package paredit)
 
 ;;; ============================================================================
 ;;; DISPLAY

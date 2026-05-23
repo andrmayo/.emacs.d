@@ -44,17 +44,18 @@
 ;;; SYSTEM CONFIG
 ;;; ============================================================================
 
-(use-package evil
-  :config
-  (evil-mode 1))
 
 (setq ring-bell-function 'ignore)
 (setq column-number-mode t)
 
 
-(use-package exec-path-from-shell)
-(when (memq window-system '(mac ns x pgtk))
-  (exec-path-from-shell-initialize))
+;; uses a non-interactive shell for faster startup
+(use-package exec-path-from-shell
+  :config
+  (setq exec-path-from-shell-arguments nil)
+  (when (memq window-system '(mac ns x pgtk))
+    (exec-path-from-shell-initialize)))
+
 
 ;; suppress launch page when emacs opens a file directly
 (setq inhibit-startup-screen
@@ -156,6 +157,89 @@
   :init
   (setq aw-dispatch-always t)
   :defer t)
+
+;; similar to neogit in nvim
+(use-package magit)
+
+;; show git change indicators in left margin, similar to gitsigns in nvim
+(use-package diff-hl)
+(global-diff-hl-mode)
+
+
+;; imitating defaults for vim-floaterm
+(use-package vterm)
+
+(defvar float-term-buffer nil)
+(defvar float-term-frame nil)
+
+(defun float-term-toggle ()
+  (interactive)
+  (if (and (frame-live-p float-term-frame)
+	   (frame-visible-p float-term-frame))
+      (make-frame-invisible float-term-frame)
+    (let* ((parent (selected-frame))
+	   (pw (frame-pixel-width parent))
+	   (ph (frame-pixel-height parent))
+	   (fw (/ pw 2))
+	   (fh (/ ph 2))
+	   (fl (/ pw 4))
+	   (ft (/ ph 4)))
+      (unless (frame-live-p float-term-frame)
+	(setq float-term-frame
+	      (make-frame `((parent-frame . ,parent)
+			    (width . (text-pixels . ,fw))
+			    (height . (text-pixels . ,fh))
+			    (left . ,fl)
+			    (top . ,ft)
+			    (minibuffer . nil)
+			    (undecorated . t)
+			    (internal-border-width . 2)))))
+      (with-selected-frame float-term-frame
+	(unless (and float-term-buffer (buffer-live-p float-term-buffer))
+	  (setq float-term-buffer (vterm)))
+	(switch-to-buffer float-term-buffer))
+      (make-frame-visible float-term-frame)
+      (select-frame-set-input-focus float-term-frame))))
+
+(global-set-key (kbd "<f12>") #'float-term-toggle)
+
+(with-eval-after-load 'vterm
+  (define-key vterm-mode-map (kbd "<f12>") #'float-term-toggle))
+
+;;; ============================================================================
+;;; EVIL
+;;; ============================================================================
+
+
+
+(use-package evil
+  :init
+  (setq evil-want-keybinding nil)
+  (setq evil-want-C-i-jump nil)
+  :config
+  (setq evil-want-visual-char-semi-exclusive t)
+  (evil-mode 1))
+
+;; Evil behaves oddly in term mode
+(evil-set-initial-state 'term-mode 'emacs)
+(evil-set-initial-state 'vterm-mode 'emacs)
+
+;; like commentary.vim
+(use-package evil-commentary)
+(evil-commentary-mode)
+
+(use-package evil-smartparens)
+
+(use-package evil-collection)
+(evil-collection-init 'magit)
+
+;; replaces Emac's linear undo
+(use-package undo-tree
+  :config
+  (global-undo-tree-mode)
+  (evil-set-undo-system 'undo-tree))
+
+(use-package paredit)
 
 ;;; ============================================================================
 ;;; DISPLAY

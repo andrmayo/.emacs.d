@@ -208,6 +208,19 @@
 
 (use-package paredit)
 
+;; character-based navigation, like Flash in Neovim
+(use-package avy)
+(evil-define-key 'normal 'global (kbd "s") 'avy-goto-char)
+
+;; TODO: replicate Flash treesitter-based selection and bind to "S"
+;; something like this:
+
+ ;; (use-package treesit-jump
+ ;;    :config
+ ;;    (evil-define-key 'normal 'global (kbd "S") 'treesit-jump))
+
+ ;;  It's not on MELPA so you'd need to install it from the GitHub source, likely with a :straight or :vc fetcher. Do you want to set that up?
+
 ;;; ============================================================================
 ;;; EVIL
 ;;; ============================================================================
@@ -276,6 +289,10 @@
   :config
   (global-undo-tree-mode)
   (evil-set-undo-system 'undo-tree))
+
+;; reolicate adn extend % behaviour in Vim
+(use-package evil-matchit)
+(global-evil-matchit-mode 1)
 
 ;;; ============================================================================
 ;;; DISPLAY

@@ -3,7 +3,6 @@
 (setq custom-file (expand-file-name "custom.el" user-emacs-directory))
 (load custom-file t)
 
-
 ;;; ============================================================================
 ;;; EMACS CORE PERFORMANCE SETTINGS
 ;;; ============================================================================
@@ -208,19 +207,6 @@
 
 (use-package paredit)
 
-;; character-based navigation, like Flash in Neovim
-(use-package avy)
-(evil-define-key 'normal 'global (kbd "s") 'avy-goto-char)
-
-;; TODO: replicate Flash treesitter-based selection and bind to "S"
-;; something like this:
-
- ;; (use-package treesit-jump
- ;;    :config
- ;;    (evil-define-key 'normal 'global (kbd "S") 'treesit-jump))
-
- ;;  It's not on MELPA so you'd need to install it from the GitHub source, likely with a :straight or :vc fetcher. Do you want to set that up?
-
 ;;; ============================================================================
 ;;; EVIL
 ;;; ============================================================================
@@ -290,9 +276,41 @@
   (global-undo-tree-mode)
   (evil-set-undo-system 'undo-tree))
 
-;; reolicate adn extend % behaviour in Vim
+;; replicate and extend % behaviour in Vim
 (use-package evil-matchit)
 (global-evil-matchit-mode 1)
+
+;; character-based navigation, like Flash in Neovim
+(use-package avy)
+(evil-define-key 'normal 'global (kbd "s") 'avy-goto-char)
+
+
+;; replicate Flash treesitter-based selection and bind to "S"
+;; add "inner" to treesit-jump-queries-filter-list if nodes are cluttered,
+;; "inner" gives the inside of blocks
+(use-package treesit-jump
+  :vc (:url "https://github.com/dmille56/treesit-jump" :rev :newest)
+  :config
+  (setq treesit-jump-queries-filter-list '("test" "param"))
+  (evil-define-key 'normal 'global (kbd "S") 'treesit-jump-jump)
+  ;; copy over custom query directories
+  (let ((custom-queries-dir (expand-file-name "treesit-queries/" user-emacs-directory)))
+    (dolist (lang-dir (directory-files custom-queries-dir t "^[^.]"))
+      (when (file-directory-p lang-dir)
+	(let* ((lang (file-name-nondirectory lang-dir))
+	       (src (expand-file-name "textobjects.scm" lang-dir))
+	       (dst (expand-file-name (concat lang "/textobjects.scm") treesit-jump-queries-dir)))
+	  (when (file-newer-than-file-p src dst)
+	    (make-directory (file-name-directory dst) t)
+	    (copy-file src dst t))))))
+  ;; add emacs-lisp-mode to treesit-jump's record of major modes for languages
+  (add-to-list 'treesit-jump-major-mode-language-alist '(emacs-lisp-mode . "elisp")))
+
+(add-to-list 'treesit-language-source-alist
+               '(python "https://github.com/tree-sitter/tree-sitter-python"))
+
+(add-hook 'emacs-lisp-mode-hook (lambda () (treesit-parser-create 'elisp)))
+(add-hook 'python-mode-hook (lambda () (treesit-parser-create 'python)))
 
 ;;; ============================================================================
 ;;; DISPLAY

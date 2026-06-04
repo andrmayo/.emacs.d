@@ -309,8 +309,8 @@
 (add-to-list 'treesit-language-source-alist
                '(python "https://github.com/tree-sitter/tree-sitter-python"))
 
-(add-hook 'emacs-lisp-mode-hook (lambda () (treesit-parser-create 'elisp)))
-(add-hook 'python-mode-hook (lambda () (treesit-parser-create 'python)))
+(add-hook 'emacs-lisp-mode-hook (lambda () (when (treesit-language-available-p 'elisp) (treesit-parser-create 'elisp))))
+(add-hook 'python-mode-hook (lambda () (when (treesit-language-available-p 'python) (treesit-parser-create 'python))))
 
 ;;; ============================================================================
 ;;; DISPLAY

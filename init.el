@@ -215,6 +215,7 @@
   :init
   (setq evil-want-keybinding nil)
   (setq evil-want-C-i-jump nil)
+  (setq evil-want-C-u-scroll t)
   :config
   (setq evil-want-visual-char-semi-exclusive t)
   (evil-mode 1))

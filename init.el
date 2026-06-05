@@ -166,10 +166,18 @@
 ;  :diminish counsel-mode
   (counsel-mode 1))
 
+(use-package dired
+  :ensure nil
+  :hook (dired-mode . auto-revert-mode))
 
 ;; package for sidebar directory exploration
 (use-package dired-sidebar
-  :commands dired-sidebar-toggle-sidebar)
+  :commands dired-sidebar-toggle-sidebar
+  :config
+  (advice-add 'dired-sidebar-toggle-sidebar :after
+	      (lambda (&rest _)
+		(when (dired-sidebar-showing-sidebar-p)
+		  (dired-sidebar-refresh-buffer)))))
 
 ;; package for jumping between windows using displayed key mappings
 (use-package ace-window
@@ -252,7 +260,36 @@
 (use-package evil-smartparens)
 
 (use-package evil-collection)
-(evil-collection-init 'magit)
+(evil-collection-init '(dired magit))
+
+;; so that "a" can create files and directories
+(defun dired-create-dir-or-file ()
+  (interactive)
+  (let ((name (read-string "Create (append / for directory): ")))
+    (if (string-suffix-p "/" name)
+	(dired-create-directory name)
+      (dired-create-empty-file name))))
+
+;; so that "d" toggled marking for deletion
+(defun dired-toggle-flag-deletion ()
+  (interactive)
+  (if (eq (char-after (line-beginning-position)) dired-del-marker)
+      (dired-unmark 1)
+    (dired-flag-file-deletion 1)))
+
+;; setup keybinding in dired sidebar
+;; dired already has "d" for marking for deletion
+(with-eval-after-load 'dired
+      (evil-define-key 'normal dired-mode-map
+	"l" 'dired-find-file
+	"h" 'dired-up-directory
+	"a" 'dired-create-dir-or-file
+	"r" 'dired-do-rename
+	"c" 'dired-do-copy
+	"d" 'dired-toggle-flag-deletion
+	"D" 'dired-do-flagged-delete
+	"x" 'dired-do-delete
+	"p" 'yank))
 
 ;; Like nvim-suround
 ;; ys for adding, ds for deleting, and cs for changing

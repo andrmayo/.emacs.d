@@ -60,7 +60,6 @@
 (setq inhibit-startup-screen
       (cl-some #'file-exists-p command-line-args))
 
-
 ;; vim-style local and global leaders
 (use-package general
     :config
@@ -136,7 +135,6 @@
 (add-hook 'window-setup-hook
 	  (lambda ()
 	    (run-with-timer 0.1 nil #'enable-startup-mode)))
-
 
 ;;; ============================================================================
 ;;; GENERAL CONFIG
@@ -259,7 +257,9 @@
 (use-package evil-commentary)
 (evil-commentary-mode)
 
-(use-package evil-smartparens)
+(use-package evil-smartparens
+             :config
+             (add-hook 'smartparens-enabled-hook #'evil-smartparens-mode))
 
 (use-package evil-collection)
 (evil-collection-init '(dired magit))
@@ -343,6 +343,10 @@
 ;; character-based navigation, like Flash in Neovim
 (use-package avy)
 (evil-define-key 'normal 'global (kbd "s") 'avy-goto-char)
+
+;; vim style movement between buffers
+(evil-define-key 'normal 'global (kbd "H") 'previous-buffer)
+(evil-define-key 'normal 'global (kbd "L") 'next-buffer)
 
 ;;; ============================================================================
 ;;; Treesitter

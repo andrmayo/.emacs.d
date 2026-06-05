@@ -288,8 +288,7 @@
 	"c" 'dired-do-copy
 	"d" 'dired-toggle-flag-deletion
 	"D" 'dired-do-flagged-delete
-	"x" 'dired-do-delete
-	"p" 'yank))
+	"x" 'dired-do-delete))
 
 ;; Like nvim-suround
 ;; ys for adding, ds for deleting, and cs for changing

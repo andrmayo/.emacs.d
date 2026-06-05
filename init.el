@@ -75,6 +75,7 @@
       :prefix "\\")
 
     (leader-def
+      "E" 'dired-sidebar-toggle-sidebar
       "fd" 'counsel-fzf
       "fc" (lambda () (interactive) (find-file user-init-file)))
     
@@ -163,6 +164,11 @@
   :config
 ;  :diminish counsel-mode
   (counsel-mode 1))
+
+
+;; package for sidebar directory exploration
+(use-package dired-sidebar
+  :commands dired-sidebar-toggle-sidebar)
 
 ;; package for jumping between windows using displayed key mappings
 (use-package ace-window

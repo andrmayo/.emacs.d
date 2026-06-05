@@ -380,11 +380,13 @@
 	    (make-directory (file-name-directory dst) t)
 	    (copy-file src dst t))))))
   ;; add emacs-lisp-mode to treesit-jump's record of major modes for languages
-  (add-to-list 'treesit-jump-major-mode-language-alist '(emacs-lisp-mode . "elisp")))
+  (add-to-list 'treesit-jump-major-mode-language-alist '(emacs-lisp-mode . "elisp"))
+  (add-to-list 'treesit-jump-major-mode-language-alist '(lisp-mode . "commonlisp")))
 
 
 (add-hook 'emacs-lisp-mode-hook (lambda () (when (treesit-language-available-p 'elisp) (treesit-parser-create 'elisp))))
 (add-hook 'python-mode-hook (lambda () (when (treesit-language-available-p 'python) (treesit-parser-create 'python))))
+(add-hook 'lisp-mode-hook (lambda () (when (treesit-language-available-p 'commonlisp (treesit-parser-create 'commonlisp)))))
 
 ;;; ============================================================================
 ;;; DISPLAY

@@ -127,13 +127,11 @@
 
 
 ;; ensure default buffer on start is *GNU Emacs* even when using emacsclient
-(defvar first-client-frame t)
-
 (add-hook 'server-after-make-frame-hook
 	  (lambda ()
-	    (when first-client-frame
-	      (setq first-client-frame nil)
-	      (run-with-timer 0.1 nil #'enable-startup-mode))))
+      (when (string= (buffer-name) "*scratch*")
+        (fancy-startup-screen)
+        (run-with-timer 0.1 nil #'enable-startup-mode))))
 
 (add-hook 'window-setup-hook
 	  (lambda ()
@@ -235,6 +233,10 @@
   (define-key vterm-mode-map (kbd "<f12>") #'float-term-toggle))
 
 (use-package paredit)
+
+(use-package which-key
+  :config
+  (which-key-mode))
 
 ;;; ============================================================================
 ;;; EVIL

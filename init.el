@@ -65,7 +65,7 @@
 (use-package general
     :config
     (general-create-definer leader-def
-      :states '(normal emacs)
+      :states '(normal)
       :keymaps 'override
       :prefix "SPC")
 
@@ -74,6 +74,10 @@
       :keymaps 'override
       :prefix "\\")
 
+    (leader-def
+      "fd" 'counsel-fzf
+      "fc" (lambda () (interactive) (find-file user-init-file)))
+    
     (local-leader-def
       :keymaps 'startup-mode-map
       "s" 'restore-desktop))
@@ -118,6 +122,16 @@
       (with-current-buffer buf
 	(startup-mode 1)
 	(evil-normal-state)))))
+
+
+;; ensure default buffer on start is *GNU Emacs* even when using emacsclient
+(defvar first-client-frame t)
+
+(add-hook 'server-after-make-frame-hook
+	  (lambda ()
+	    (when first-client-frame
+	      (setq first-client-frame nil)
+	      (run-with-timer 0.1 nil #'enable-startup-mode))))
 
 (add-hook 'window-setup-hook
 	  (lambda ()
@@ -285,6 +299,18 @@
 (use-package avy)
 (evil-define-key 'normal 'global (kbd "s") 'avy-goto-char)
 
+;;; ============================================================================
+;;; Treesitter
+;;; ============================================================================
+
+;; Add grammar sources
+(with-eval-after-load 'treesit
+  (add-to-list 'treesit-language-source-alist
+               '(elisp "https://github.com/Wilfred/tree-sitter-elisp"))
+  (add-to-list 'treesit-language-source-alist
+	       '(commonlisp "https://github.com/tree-sitter-grammars/tree-sitter-commonlisp"))
+  (add-to-list 'treesit-language-source-alist
+		'(python "https://github.com/tree-sitter/tree-sitter-python")))
 
 ;; replicate Flash treesitter-based selection and bind to "S"
 ;; add "inner" to treesit-jump-queries-filter-list if nodes are cluttered,
@@ -307,8 +333,6 @@
   ;; add emacs-lisp-mode to treesit-jump's record of major modes for languages
   (add-to-list 'treesit-jump-major-mode-language-alist '(emacs-lisp-mode . "elisp")))
 
-(add-to-list 'treesit-language-source-alist
-               '(python "https://github.com/tree-sitter/tree-sitter-python"))
 
 (add-hook 'emacs-lisp-mode-hook (lambda () (when (treesit-language-available-p 'elisp) (treesit-parser-create 'elisp))))
 (add-hook 'python-mode-hook (lambda () (when (treesit-language-available-p 'python) (treesit-parser-create 'python))))

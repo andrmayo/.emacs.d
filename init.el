@@ -77,7 +77,8 @@
     (leader-def
       "E" 'dired-sidebar-toggle-sidebar
       "fd" 'counsel-fzf
-      "fc" (lambda () (interactive) (find-file user-init-file)))
+      "fc" (lambda () (interactive) (find-file user-init-file))
+      "/" 'counsel-rg)
     
     (local-leader-def
       :keymaps 'startup-mode-map

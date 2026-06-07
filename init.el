@@ -144,20 +144,21 @@
 
 ;; if using ghostty, add this to .bashrc:
 
-; alias emacs-gui="$(which emacs)"
-;
 ; EMACS_TERMINAL_CMD="ghostty --working-directory=%s"
 ; EMACS_TERM_ENV_CMD="(setenv \"EMACS_TERMINAL_CMD\" \"$EMACS_TERMINAL_CMD\")"
 ;
 ; emacs() {
+;   local dir_cmd="(setq default-directory \"$PWD/\")"
 ;   if emacsclient -e 't' 2>/dev/null; then
 ;     emacsclient --eval "$EMACS_TERM_ENV_CMD" >/dev/null 2>&1
+;     emacsclient --eval "$dir_cmd" >/dev/null 2>&1 &
 ;     emacsclient -c "$@" &
 ;     disown
 ;     sleep 0.25
 ;   else
 ;     command emacs --daemon
 ;     emacsclient --eval "$EMACS_TERM_ENV_CMD" >/dev/null 2>&1
+;     emacsclient --eval "$dir_cmd" >/dev/null 2>&1 &
 ;     emacsclient -c "$@" &
 ;     disown
 ;     sleep 0.5
@@ -169,16 +170,22 @@
 ;   emacsclient -t "$@" 2>/dev/null || { command emacs --daemon && emacsclient -t "$@"; }
 ; }
 ;
-; emacs-stop() { emacsclient -e '(kill-emacs)'; }
+; emacs-stop() {
+;   emacsclient -e '(setenv "EMACS_TERMINAL_CMD" nil)' >/dev/null 2>&1
+;   emacsclient -e '(kill-emacs)' >/dev/null 2>&1
+; }
 
 
 (add-hook 'delete-frame-functions
 	  (lambda (frame)
 	    (when (and (<= (length (filtered-frame-list #'display-graphic-p)) 1)
 		       (getenv "EMACS_TERMINAL_CMD"))
-	      (let ((term-cmd (getenv "EMACS_TERMINAL_CMD")))
-		(shell-command
-		 (concat (format term-cmd default-directory) " &"))))))
+	      (let* ((term-cmd (getenv "EMACS_TERMINAL_CMD"))
+               (dir (with-selected-frame frame
+                    (expand-file-name default-directory)))
+               (cmd (format term-cmd dir))
+               (parts (split-string cmd " ")))
+		(apply #'start-process "terminal" nil "setsid" parts)))))
 
 
 ;;; ============================================================================

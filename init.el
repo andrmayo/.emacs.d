@@ -85,7 +85,7 @@
 
 
 ;;; ============================================================================
-;;; STARTUP
+;;; STARTUP AND SHUTDOWN
 ;;; ============================================================================
 
 (require 'desktop)
@@ -135,6 +135,51 @@
 (add-hook 'window-setup-hook
 	  (lambda ()
 	    (run-with-timer 0.1 nil #'enable-startup-mode)))
+
+
+;; open terminal on exiting emacs
+;; requires something like 'ghostty --working-directory=%s' to be passed to emacsclient
+;; with
+;; emacsclient -c --eval "(setenv \"EMACS_TERMINAL_CMD\" \"ghostty --working-directory=%s\")" "$@" & disown
+
+;; if using ghostty, add this to .bashrc:
+
+; alias emacs-gui="$(which emacs)"
+;
+; EMACS_TERMINAL_CMD="ghostty --working-directory=%s"
+; EMACS_TERM_ENV_CMD="(setenv \"EMACS_TERMINAL_CMD\" \"$EMACS_TERMINAL_CMD\")"
+;
+; emacs() {
+;   if emacsclient -e 't' 2>/dev/null; then
+;     emacsclient --eval "$EMACS_TERM_ENV_CMD" >/dev/null 2>&1
+;     emacsclient -c "$@" &
+;     disown
+;     sleep 0.25
+;   else
+;     command emacs --daemon
+;     emacsclient --eval "$EMACS_TERM_ENV_CMD" >/dev/null 2>&1
+;     emacsclient -c "$@" &
+;     disown
+;     sleep 0.5
+;   fi
+;   exit
+; }
+;
+; emacs-t() {
+;   emacsclient -t "$@" 2>/dev/null || { command emacs --daemon && emacsclient -t "$@"; }
+; }
+;
+; emacs-stop() { emacsclient -e '(kill-emacs)'; }
+
+
+(add-hook 'delete-frame-functions
+	  (lambda (frame)
+	    (when (and (<= (length (filtered-frame-list #'display-graphic-p)) 1)
+		       (getenv "EMACS_TERMINAL_CMD"))
+	      (let ((term-cmd (getenv "EMACS_TERMINAL_CMD")))
+		(shell-command
+		 (concat (format term-cmd default-directory) " &"))))))
+
 
 ;;; ============================================================================
 ;;; GENERAL CONFIG
@@ -345,8 +390,8 @@
 (evil-define-key 'normal 'global (kbd "s") 'avy-goto-char)
 
 ;; vim style movement between buffers
-(evil-define-key 'normal 'global (kbd "H") 'previous-buffer)
-(evil-define-key 'normal 'global (kbd "L") 'next-buffer)
+(evil-define-key '(normal emacs) 'global (kbd "H") 'previous-buffer)
+(evil-define-key '(normal emacs) 'global (kbd "L") 'next-buffer)
 
 ;;; ============================================================================
 ;;; Treesitter

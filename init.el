@@ -397,8 +397,10 @@
 (evil-define-key 'normal 'global (kbd "s") 'avy-goto-char)
 
 ;; vim style movement between buffers
-(evil-define-key '(normal emacs) 'global (kbd "H") 'previous-buffer)
-(evil-define-key '(normal emacs) 'global (kbd "L") 'next-buffer)
+;; include 'motion state, since many read-only/special-mode buffers
+;; use motion state rather than normal state
+(evil-define-key '(normal motion emacs) 'global (kbd "H") 'previous-buffer)
+(evil-define-key '(normal motion emacs) 'global (kbd "L") 'next-buffer)
 
 ;;; ============================================================================
 ;;; Treesitter

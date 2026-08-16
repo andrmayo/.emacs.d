@@ -69,8 +69,7 @@
       :prefix "SPC")
 
     (general-create-definer local-leader-def
-      :states '(normal emacs)
-      :keymaps 'override
+      :states '(normal visual emacs)
       :prefix "\\")
 
     (leader-def
@@ -129,7 +128,9 @@
 (add-hook 'server-after-make-frame-hook
 	  (lambda ()
       (when (string= (buffer-name) "*scratch*")
-        (fancy-startup-screen)
+        (if (display-graphic-p)
+            (fancy-startup-screen)
+          (normal-splash-screen))
         (run-with-timer 0.1 nil #'enable-startup-mode))))
 
 (add-hook 'window-setup-hook
@@ -468,3 +469,11 @@
   (setq doom-modeline-bar-width 3)
   (setq doom-modeline-icon t)
   (setq doom-modeline-major-mode-icon t))
+
+
+;;; ============================================================================
+;;; LOAD SEPARATE CONFIG FILES
+;;; ============================================================================
+
+;; load org-mode config
+(load (expand-file-name "org-config.el" user-emacs-directory))

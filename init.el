@@ -470,6 +470,41 @@
   (setq doom-modeline-icon t)
   (setq doom-modeline-major-mode-icon t))
 
+;;; ============================================================================
+;;; FURTHER LINTING, SPELLCHECKING, ETC
+;;; ============================================================================
+
+; flycheck to check things
+(use-package flycheck
+  :init (global-flycheck-mode))
+(setq-default flycheck-disabled-checkers '(tex-lacheck)) ; disabled because it is slowing down big files.
+
+(with-eval-after-load 'flycheck
+  (flycheck-define-checker textlint "A linter for textlint."
+			   :command ("npx" "--no-install" "textlint"
+				     "--config" (eval
+						 (let* ((project (project-current))
+							(root (and project (project-root project)))
+							(project-config
+							 (and root
+							      (expand-file-name ".textlintrc" root))))
+						   (if (and project-config (file-exists-p project-config))
+						       project-config
+						     (expand-file-name ".textlintrc" user-emacs-directory))))
+						 "--format" "unix"
+						 "--plugin"
+						 (eval
+						  (if (derived-mode-p 'tex-mode)
+						      "latex"
+						    "@textlint/text"))
+						 source-inplace)
+				     :error-patterns
+				     ((warning line-start (file-name) ":" line ":" column ": "
+					       (message (one-or-more not-newline)
+							(zero-or-more "\n" (any " ") (one-or-more not-newline)))
+					       line-end))
+				     :modes (text-mode latex-mode org-mode markdown-mode))
+  (add-to-list 'flycheck-checkers 'textlint))
 
 ;;; ============================================================================
 ;;; LOAD SEPARATE CONFIG FILES

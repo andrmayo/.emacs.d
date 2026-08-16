@@ -1,3 +1,7 @@
+;; automatically wrap lines to fill-column while typing
+(setq-default fill-column 80)
+(add-hook 'org-mode-hook #'auto-fill-mode)
+
 (use-package evil-org
     :ensure t
     :after org
@@ -16,5 +20,15 @@
 
 (local-leader-def
   :keymaps 'org-mode-map
-  "l" #'org-latex-preview-all)
+  "l" #'org-latex-preview-all
+  :which-key "latex preview all")
+
+(defun org-fill-buffer ()
+  (interactive)
+  (fill-region (point-min) (point-max)))
+
+(local-leader-def
+  :keymaps 'org-mode-map
+  "f" #'org-fill-buffer
+  :which-key "fill buffer")
 

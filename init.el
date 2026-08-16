@@ -26,10 +26,11 @@
 
 (require 'package)
 (setq package-archives '())
- (add-to-list 'package-archives
-              '("melpa" . "https://melpa.org/packages/"))
- (add-to-list 'package-archives
-              '("gnu" . "https://elpa.gnu.org/packages/"))
+
+(add-to-list 'package-archives
+	    '("melpa" . "https://melpa.org/packages/"))
+(add-to-list 'package-archives
+	    '("gnu" . "https://elpa.gnu.org/packages/"))
 
 (package-initialize)
 ;; (package-refresh-contents)
@@ -369,11 +370,11 @@
      :config
      (global-evil-surround-mode 1)
     (setq-default evil-surround-pairs-alist
-        '((?( . ("(" . ")"))
-        (?[ . ("[" . "]"))
+        '((?\( . ("(" . ")"))
+        (?\[ . ("[" . "]"))
         (?{ . ("{" . "}"))
-        (?) . ("(" . ")"))
-        (?] . ("[" . "]"))
+        (?\) . ("(" . ")"))
+        (?\] . ("[" . "]"))
         (?} . ("{" . "}"))
         (?b . ("(" . ")"))
         (?B . ("{" . "}"))

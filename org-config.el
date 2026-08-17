@@ -32,3 +32,15 @@
   "f" #'org-fill-buffer
   :which-key "fill buffer")
 
+(defun org-toggle-window-wrap ()
+  (interactive)
+  (if visual-line-mode
+      (visual-line-mode -1)
+    (auto-fill-mode -1)
+    (visual-line-mode 1)))
+
+(local-leader-def
+  :keymaps 'org-mode-map
+  "w" #'org-toggle-window-wrap
+  :which-key "toggle window-width wrap")
+

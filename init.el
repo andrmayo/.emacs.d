@@ -477,8 +477,13 @@
 
 ; flycheck to check things
 (use-package flycheck
-  :init (global-flycheck-mode))
+  :init (global-flycheck-mode)
 (setq-default flycheck-disabled-checkers '(tex-lacheck)) ; disabled because it is slowing down big files.
+
+(add-hook 'text-mode-hook #'flyspell-mode)
+(add-hook 'org-mode-hook #'flyspell-mode)
+(add-hook 'markdown-mode-hook #'flyspell-mode)
+
 
 (with-eval-after-load 'flycheck
   (flycheck-define-checker textlint "A linter for textlint."
@@ -505,6 +510,7 @@
 							(zero-or-more "\n" (any " ") (one-or-more not-newline)))
 					       line-end))
 				     :modes (text-mode latex-mode org-mode markdown-mode))
+				     )
   (add-to-list 'flycheck-checkers 'textlint))
 
 ;;; ============================================================================

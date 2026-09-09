@@ -286,6 +286,15 @@
 
 (use-package paredit)
 
+;;; ============================================================================
+;;; Common Lisp (Sly)
+;;; ============================================================================
+
+(use-package sly
+  :init
+  (setq inferior-lisp-program "sbcl")
+  :hook (lisp-mode . sly-editing-mode))
+
 (use-package which-key
   :config
   (which-key-mode))
@@ -316,7 +325,7 @@
              (add-hook 'smartparens-enabled-hook #'evil-smartparens-mode))
 
 (use-package evil-collection)
-(evil-collection-init '(dired magit))
+(evil-collection-init '(dired magit sly))
 
 ;; so that "a" can create files and directories
 (defun dired-create-dir-or-file ()
@@ -442,7 +451,7 @@
 
 (add-hook 'emacs-lisp-mode-hook (lambda () (when (treesit-language-available-p 'elisp) (treesit-parser-create 'elisp))))
 (add-hook 'python-mode-hook (lambda () (when (treesit-language-available-p 'python) (treesit-parser-create 'python))))
-(add-hook 'lisp-mode-hook (lambda () (when (treesit-language-available-p 'commonlisp (treesit-parser-create 'commonlisp)))))
+(add-hook 'lisp-mode-hook (lambda () (when (treesit-language-available-p 'commonlisp) (treesit-parser-create 'commonlisp))))
 
 ;;; ============================================================================
 ;;; DISPLAY

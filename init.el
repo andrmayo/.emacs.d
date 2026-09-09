@@ -293,7 +293,19 @@
 (use-package sly
   :init
   (setq inferior-lisp-program "sbcl")
+  (setq sly-lisp-implementations
+        '((sbcl ("sbcl") :coding-system utf-8-unix)
+          (qlot ("qlot" "exec" "ros" "run") :coding-system utf-8-unix)))
   :hook (lisp-mode . sly-editing-mode))
+
+(local-leader-def
+  :keymaps 'lisp-mode-map
+  "r" (lambda () (interactive)
+        (let ((current-prefix-arg '-))
+          (call-interactively #'sly)))
+  :which-key "start sly (choose implementation)"
+  "q" (lambda () (interactive) (sly 'qlot))
+  :which-key "start sly (qlot)")
 
 (use-package which-key
   :config

@@ -500,6 +500,8 @@
 (use-package flycheck
   :init (global-flycheck-mode)
 (setq-default flycheck-disabled-checkers '(tex-lacheck)) ; disabled because it is slowing down big files.
+;; no Flycheck checker exists for Common Lisp; exclude to silence the "no syntax checker" message
+(setq flycheck-global-modes '(not lisp-mode lisp-interaction-mode))
 
 (add-hook 'text-mode-hook #'flyspell-mode)
 (add-hook 'org-mode-hook #'flyspell-mode)

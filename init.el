@@ -383,6 +383,15 @@ while still defaulting to the launching shell's directory outside of one."
 (evil-set-initial-state 'term-mode 'emacs)
 (evil-set-initial-state 'vterm-mode 'emacs)
 
+;; flash a highlight on yank/delete/paste, etc.
+;; (not using `evil-goggles-use-diff-faces': its `diff-changed' face has no
+;; background under doom-solarized-dark, making yank nearly invisible;
+;; doom-themes already ships a properly contrasted `evil-goggles-default-face')
+(use-package evil-goggles
+  :ensure t
+  :config
+  (evil-goggles-mode))
+
 ;; like commentary.vim
 (use-package evil-commentary)
 (evil-commentary-mode)
@@ -521,6 +530,32 @@ while still defaulting to the launching shell's directory outside of one."
 (add-hook 'lisp-mode-hook (lambda () (when (treesit-language-available-p 'commonlisp) (treesit-parser-create 'commonlisp))))
 
 ;;; ============================================================================
+;;; LSP (Eglot)
+;;; ============================================================================
+
+;; built-in, minimal LSP client (like nvim-lspconfig: just talks LSP,
+;; no bundled UI), rather than the heavier lsp-mode framework
+(use-package eglot
+  :ensure nil
+  :hook (python-mode . eglot-ensure))
+
+;; SPC s s: fuzzy-jump to a symbol in the current buffer via imenu,
+;; which eglot populates from the LSP server's document symbols
+;; (matches neovim's <leader>ss, LSP document symbols)
+(leader-def "ss" 'counsel-imenu)
+
+;; show counsel-imenu as a floating window (like `float-term-toggle')
+;; instead of in the minibuffer; other ivy/counsel prompts are unaffected
+(use-package ivy-posframe
+  :ensure t
+  :after ivy
+  :config
+  (setq ivy-posframe-display-functions-alist
+        '((counsel-imenu . ivy-posframe-display-at-frame-center)
+          (counsel-fzf . ivy-posframe-display-at-frame-center)))
+  (ivy-posframe-mode 1))
+
+;;; ============================================================================
 ;;; DISPLAY
 ;;; ============================================================================
 
@@ -529,7 +564,7 @@ while still defaulting to the launching shell's directory outside of one."
 ;; color themes
 (use-package doom-themes
   :ensure t
-  :init (progn (load-theme 'doom-solarized-dark t)))
+  :init (progn (load-theme 'doom-one t)))
 
 ;; Control the modeline appearance:
 (use-package nerd-icons)

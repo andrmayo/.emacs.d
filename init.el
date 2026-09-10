@@ -527,14 +527,9 @@ while still defaulting to the launching shell's directory outside of one."
 (global-display-line-numbers-mode 1)
 
 ;; color themes
- ;; (use-package sublime-themes
- ;;  :init (progn (load-theme 'mccarthy t)))
-;; (use-package sublime-themes
-;;        :init (progn (load-theme 'spolsky t)))
-;; (use-package solarized-theme
-;;   :init (progn (load-theme 'solarized-light t)))
-(use-package solarized-theme
-  :init (progn (load-theme 'solarized-dark t)))
+(use-package doom-themes
+  :ensure t
+  :init (progn (load-theme 'doom-solarized-dark t)))
 
 ;; Control the modeline appearance:
 (use-package nerd-icons)
@@ -557,6 +552,18 @@ while still defaulting to the launching shell's directory outside of one."
   (setq centaur-tabs-set-modified-marker t)
   :config
   (centaur-tabs-mode t))
+
+;; color matching parens/brackets by nesting depth
+(use-package rainbow-delimiters
+  :ensure t
+  :hook (prog-mode . rainbow-delimiters-mode))
+
+;; dim the background of non-file buffers (sidebar, REPLs, popups)
+;; so the buffer you're actually editing stands out
+(use-package solaire-mode
+  :ensure t
+  :config
+  (solaire-global-mode +1))
 
 ;;; ============================================================================
 ;;; FURTHER LINTING, SPELLCHECKING, ETC

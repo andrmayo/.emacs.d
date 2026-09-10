@@ -477,8 +477,8 @@ while still defaulting to the launching shell's directory outside of one."
 ;; vim style movement between buffers
 ;; include 'motion state, since many read-only/special-mode buffers
 ;; use motion state rather than normal state
-(evil-define-key '(normal motion emacs) 'global (kbd "H") 'previous-buffer)
-(evil-define-key '(normal motion emacs) 'global (kbd "L") 'next-buffer)
+(evil-define-key '(normal motion emacs) 'global (kbd "H") 'centaur-tabs-backward)
+(evil-define-key '(normal motion emacs) 'global (kbd "L") 'centaur-tabs-forward)
 
 ;;; ============================================================================
 ;;; Treesitter

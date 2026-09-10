@@ -77,7 +77,8 @@
       "E" 'session-dired-sidebar
       "fd" 'session-fzf
       "fc" (lambda () (interactive) (find-file user-init-file))
-      "/" 'counsel-rg)
+      "/" 'counsel-rg
+      "bd" 'kill-current-buffer)
     
     (local-leader-def
       :keymaps 'startup-mode-map

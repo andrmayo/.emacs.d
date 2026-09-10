@@ -547,6 +547,17 @@ while still defaulting to the launching shell's directory outside of one."
   (setq doom-modeline-icon t)
   (setq doom-modeline-major-mode-icon t))
 
+;; visual buffer tabs across the top, like a neovim bufferline
+(use-package centaur-tabs
+  :ensure t
+  :init
+  (setq centaur-tabs-set-icons t)
+  (setq centaur-tabs-icon-type 'nerd-icons)
+  (setq centaur-tabs-set-bar 'under)
+  (setq centaur-tabs-set-modified-marker t)
+  :config
+  (centaur-tabs-mode t))
+
 ;;; ============================================================================
 ;;; FURTHER LINTING, SPELLCHECKING, ETC
 ;;; ============================================================================

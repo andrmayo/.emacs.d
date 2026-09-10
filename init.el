@@ -565,6 +565,26 @@ while still defaulting to the launching shell's directory outside of one."
   :config
   (solaire-global-mode +1))
 
+;; consistent placement for REPL/shell/compile/help buffers, like Doom's
+;; popup module, with a toggle/cycle instead of manual window management
+(use-package popper
+  :ensure t
+  :bind (("C-`"   . popper-toggle)
+         ("M-`"   . popper-cycle)
+         ("C-M-`" . popper-toggle-type))
+  :init
+  (setq popper-reference-buffers
+        '("\\*Messages\\*"
+          "\\*Async Shell Command\\*"
+          "^\\*shell:.*\\*$"
+          "\\*sly-mrepl.*\\*"
+          "\\*sly-started inferior-lisp.*\\*"
+          help-mode
+          compilation-mode
+          vterm-mode))
+  (popper-mode +1)
+  (popper-echo-mode +1))
+
 ;;; ============================================================================
 ;;; FURTHER LINTING, SPELLCHECKING, ETC
 ;;; ============================================================================

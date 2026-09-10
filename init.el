@@ -74,8 +74,8 @@
       :prefix "\\")
 
     (leader-def
-      "E" 'dired-sidebar-toggle-sidebar
-      "fd" 'counsel-fzf
+      "E" 'session-dired-sidebar
+      "fd" 'session-fzf
       "fc" (lambda () (interactive) (find-file user-init-file))
       "/" 'counsel-rg)
     
@@ -125,9 +125,55 @@
 	(evil-normal-state)))))
 
 
+;; PWD of the shell that launched this frame (via emacsclient --eval, see
+;; .bashrc's `emacs` function). Stored per-frame so it survives visiting
+;; files elsewhere without clobbering their own default-directory, and so
+;; multiple frames launched from different shells don't stomp on each other.
+(defvar emacs--next-frame-pwd nil
+  "PWD to attach to the next frame created via emacsclient, set externally.")
+
+(require 'project)
+
+(defun session-pwd (&optional frame)
+  "Return the PWD of the shell that launched FRAME (or the selected frame).
+Falls back to `default-directory' if the frame wasn't launched via the
+`emacs' shell wrapper (e.g. GUI Emacs, or a frame that predates it)."
+  (or (frame-parameter (or frame (selected-frame)) 'session-pwd)
+      default-directory))
+
+(defun session-shell ()
+  "Open a shell in the PWD of the shell that launched this frame."
+  (interactive)
+  (let ((default-directory (session-pwd)))
+    (shell (generate-new-buffer-name (format "*shell: %s*" default-directory)))))
+
+(defun session-root ()
+  "Return the current buffer's project root, falling back to `session-pwd'.
+Lets project-aware commands stay scoped to the project you're editing,
+while still defaulting to the launching shell's directory outside of one."
+  (if-let* ((proj (project-current)))
+      (project-root proj)
+    (session-pwd)))
+
+(defun session-fzf ()
+  "Run `counsel-fzf' rooted at `session-root' rather than the buffer's directory."
+  (interactive)
+  (counsel-fzf nil (session-root)))
+
+(defun session-dired-sidebar ()
+  "Toggle `dired-sidebar' rooted at `session-root' rather than the buffer's directory."
+  (interactive)
+  (dired-sidebar-toggle-sidebar (session-root)))
+
+(leader-def "'" 'session-shell)
+
 ;; ensure default buffer on start is *GNU Emacs* even when using emacsclient
 (add-hook 'server-after-make-frame-hook
 	  (lambda ()
+      (when emacs--next-frame-pwd
+        (set-frame-parameter (selected-frame) 'session-pwd emacs--next-frame-pwd)
+        (setq default-directory emacs--next-frame-pwd)
+        (setq emacs--next-frame-pwd nil))
       (when (string= (buffer-name) "*scratch*")
         (if (display-graphic-p)
             (fancy-startup-screen)
@@ -150,7 +196,7 @@
 ; EMACS_TERM_ENV_CMD="(setenv \"EMACS_TERMINAL_CMD\" \"$EMACS_TERMINAL_CMD\")"
 ;
 ; emacs() {
-;   local dir_cmd="(setq default-directory \"$PWD/\")"
+;   local dir_cmd="(setq emacs--next-frame-pwd \"$PWD/\")"
 ;   if emacsclient -e 't' 2>/dev/null; then
 ;     emacsclient --eval "$EMACS_TERM_ENV_CMD" >/dev/null 2>&1
 ;     emacsclient --eval "$dir_cmd" >/dev/null 2>&1 &
@@ -183,8 +229,7 @@
 	    (when (and (<= (length (filtered-frame-list #'display-graphic-p)) 1)
 		       (getenv "EMACS_TERMINAL_CMD"))
 	      (let* ((term-cmd (getenv "EMACS_TERMINAL_CMD"))
-               (dir (with-selected-frame frame
-                    (expand-file-name default-directory)))
+               (dir (expand-file-name (session-pwd frame)))
                (cmd (format term-cmd dir))
                (parts (split-string cmd " ")))
 		(apply #'start-process "terminal" nil "setsid" parts)))))
@@ -300,12 +345,22 @@
 
 (local-leader-def
   :keymaps 'lisp-mode-map
-  "r" (lambda () (interactive)
-        (let ((current-prefix-arg '-))
-          (call-interactively #'sly)))
-  :which-key "start sly (choose implementation)"
-  "q" (lambda () (interactive) (sly 'qlot))
-  :which-key "start sly (qlot)")
+  "r" (list :def (lambda () (interactive)
+                   (let ((current-prefix-arg '-))
+                     (call-interactively #'sly)))
+            :which-key "start sly (choose implementation)")
+  "q" (list :def (lambda ()
+                   (interactive)
+                   ;; call `sly-start' directly (rather than `(sly 'qlot)')
+                   ;; so :directory always `cd's the inferior-lisp buffer,
+                   ;; even if that buffer is being reused from a previous,
+                   ;; differently-rooted invocation.
+                   (sly-start :program "qlot"
+                              :program-args '("exec" "ros" "run")
+                              :coding-system 'utf-8-unix
+                              :directory (session-root)
+                              :name 'qlot))
+            :which-key "start sly (qlot)"))
 
 (use-package which-key
   :config

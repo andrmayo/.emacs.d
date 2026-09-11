@@ -344,24 +344,114 @@ while still defaulting to the launching shell's directory outside of one."
           (qlot ("qlot" "exec" "ros" "run") :coding-system utf-8-unix)))
   :hook (lisp-mode . sly-editing-mode))
 
+(defun sly-qlot-system-name (root)
+  "Guess the ASDF system to load for the qlot project at ROOT.
+Prefers an .asd file matching ROOT's own directory name (e.g.
+sae-cl/sae-cl.asd); falls back to any .asd file found in ROOT."
+  (let* ((dirname (file-name-nondirectory (directory-file-name root)))
+         (preferred (expand-file-name (concat dirname ".asd") root)))
+    (if (file-exists-p preferred)
+        dirname
+      (let ((any-asd (car (directory-files root nil "\\.asd\\'"))))
+        (unless any-asd
+          (user-error "No .asd file found in %s" root))
+        (file-name-sans-extension any-asd)))))
+
+(defun sly-kill-compile-buffers ()
+  "Kill all Sly compiler-notes/compilation-log buffers."
+  (interactive)
+  (let ((name (sly-buffer-name :compilation)))
+    (dolist (buf (buffer-list))
+      (when (string-prefix-p name (buffer-name buf))
+        (kill-buffer buf)))))
+
+(local-leader-def "wc" 'sly-kill-compile-buffers)
+
 (local-leader-def
   :keymaps 'lisp-mode-map
+  "q" '(:ignore t :which-key "qlot")
+  "c" '(:ignore t :which-key "compile/eval")
   "r" (list :def (lambda () (interactive)
                    (let ((current-prefix-arg '-))
                      (call-interactively #'sly)))
             :which-key "start sly (choose implementation)")
-  "q" (list :def (lambda ()
-                   (interactive)
-                   ;; call `sly-start' directly (rather than `(sly 'qlot)')
-                   ;; so :directory always `cd's the inferior-lisp buffer,
-                   ;; even if that buffer is being reused from a previous,
-                   ;; differently-rooted invocation.
-                   (sly-start :program "qlot"
-                              :program-args '("exec" "ros" "run")
-                              :coding-system 'utf-8-unix
-                              :directory (session-root)
-                              :name 'qlot))
-            :which-key "start sly (qlot)"))
+  "ql" (list :def (lambda ()
+                    (interactive)
+                    ;; call `sly-start' directly (rather than `(sly 'qlot)')
+                    ;; so :directory always `cd's the inferior-lisp buffer,
+                    ;; even if that buffer is being reused from a previous,
+                    ;; differently-rooted invocation.
+                    (let* ((root (session-root))
+                           (name (sly-qlot-system-name root))
+                           (system (intern (concat ":" name))))
+                      (sly-start :program "qlot"
+                                 :program-args '("exec" "ros" "run")
+                                 :coding-system 'utf-8-unix
+                                 :directory root
+                                 :name 'qlot
+                                 ;; qlot only configures the local quicklisp
+                                 ;; env; it doesn't load the project itself
+                                 :init-function
+                                 (lambda ()
+                                   (sly-eval-async
+                                    `(ql:quickload ,system)
+                                    ;; only after quickload actually
+                                    ;; completes: sync the REPL's *own*
+                                    ;; package via Sly's own mechanism
+                                    ;; (a raw `in-package' sent through
+                                    ;; sly-eval-async only affects that
+                                    ;; one throwaway call's dynamic
+                                    ;; extent, not the persistent REPL)
+                                    (lambda (_result)
+                                      (sly-mrepl-sync name)))))))
+             :which-key "start sly (qlot, autoload project)")
+  "qq" (list :def (lambda ()
+                    (interactive)
+                    (sly-start :program "qlot"
+                               :program-args '("exec" "ros" "run")
+                               :coding-system 'utf-8-unix
+                               :directory (session-root)
+                               :name 'qlot))
+             :which-key "start sly (qlot only, no autoload)")
+  "qd" (list :def (lambda ()
+                    (interactive)
+                    (let* ((root (session-root))
+                           (system (intern (concat ":" (sly-qlot-system-name root)))))
+                      (sly-start :program "qlot"
+                                 :program-args '("exec" "ros" "run")
+                                 :coding-system 'utf-8-unix
+                                 :directory root
+                                 :name 'qlot
+                                 ;; load only the system's declared
+                                 ;; dependencies, not the system itself
+                                 :init-function
+                                 (lambda ()
+                                   ;; fully package-qualified, and using
+                                   ;; mapc/lambda rather than dolist, since
+                                   ;; an unqualified `dep' loop variable was
+                                   ;; colliding with something already
+                                   ;; defined in the loaded dependency tree
+                                   (sly-eval-async
+                                    `(cl:mapc
+                                      (cl:lambda (%dep%)
+                                        (quicklisp-client:quickload
+                                         (cl:cond ((cl:and (cl:consp %dep%) (cl:eq (cl:car %dep%) :version))
+                                                   (cl:second %dep%))
+                                                  ((cl:and (cl:consp %dep%) (cl:eq (cl:car %dep%) :feature))
+                                                   (cl:third %dep%))
+                                                  ((cl:consp %dep%) (cl:car %dep%))
+                                                  (cl:t %dep%))))
+                                      (asdf:component-sideway-dependencies
+                                       (asdf:find-system ,system)))
+                                    nil "CL-USER")))))
+             :which-key "start sly (deps only, no project)")
+  ;; mirror the letters from Sly's own C-c/C-x/M-x bindings
+  "cc" (list :def 'sly-compile-defun :which-key "compile+eval defun (C-c C-c)")
+  "cr" (list :def 'sly-eval-region :which-key "eval region (C-c C-r)")
+  "ck" (list :def 'sly-compile-and-load-file :which-key "compile+load file (C-c C-k)")
+  "cl" (list :def 'sly-load-file :which-key "load file (C-c C-l)")
+  "mx" (list :def 'sly-eval-defun :which-key "eval defun (C-M-x)")
+  "xe" (list :def 'sly-eval-last-expression :which-key "eval last expression (C-x C-e)"))
 
 (use-package which-key
   :config

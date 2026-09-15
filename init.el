@@ -472,7 +472,8 @@ sae-cl/sae-cl.asd); falls back to any .asd file found in ROOT."
 
 ;; Evil behaves oddly in term mode
 (evil-set-initial-state 'term-mode 'emacs)
-(evil-set-initial-state 'vterm-mode 'emacs)
+;; vterm's own evil state (insert/normal toggling, proper key passthrough)
+;; is set up by `evil-collection-vterm' below instead of a blanket 'emacs
 
 ;; flash a highlight on yank/delete/paste, etc.
 ;; (not using `evil-goggles-use-diff-faces': its `diff-changed' face has no
@@ -492,7 +493,7 @@ sae-cl/sae-cl.asd); falls back to any .asd file found in ROOT."
              (add-hook 'smartparens-enabled-hook #'evil-smartparens-mode))
 
 (use-package evil-collection)
-(evil-collection-init '(dired magit sly))
+(evil-collection-init '(dired magit sly vterm))
 
 ;; so that "a" can create files and directories
 (defun dired-create-dir-or-file ()

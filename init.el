@@ -1,4 +1,8 @@
-;;; -*- lexical-binding: t -*-
+;;; init.el --- config for emacs -*- lexical-binding: t; -*-
+;;; Commentary:
+;; Configuration file for Emacs
+
+;;; Code:
 
 (setq custom-file (expand-file-name "custom.el" user-emacs-directory))
 (load custom-file t)
@@ -74,7 +78,7 @@
       :prefix "\\")
 
     (leader-def
-      "E" 'session-dired-sidebar
+      "E" 'dirvish-side
       "fd" 'session-fzf
       "fc" (lambda () (interactive) (find-file user-init-file))
       "/" 'counsel-rg
@@ -161,11 +165,6 @@ while still defaulting to the launching shell's directory outside of one."
   (interactive)
   (counsel-fzf nil (session-root)))
 
-(defun session-dired-sidebar ()
-  "Toggle `dired-sidebar' rooted at `session-root' rather than the buffer's directory."
-  (interactive)
-  (dired-sidebar-toggle-sidebar (session-root)))
-
 (leader-def "'" 'session-shell)
 
 ;; ensure default buffer on start is *GNU Emacs* even when using emacsclient
@@ -220,8 +219,14 @@ while still defaulting to the launching shell's directory outside of one."
 ; }
 ;
 ; emacs-stop() {
-;   emacsclient -e '(setenv "EMACS_TERMINAL_CMD" nil)' >/dev/null 2>&1
+;   emacsclient -e '(setenv "emacs_terminal_cmd" nil)' >/dev/null 2>&1
 ;   emacsclient -e '(kill-emacs)' >/dev/null 2>&1
+; }
+;
+; emacs-r() {
+;   emacsclient -e '(setenv "emacs_terminal_cmd" nil)' >/dev/null 2>&1
+;   emacsclient -e '(kill-emacs)' >/dev/null 2>&1
+;   emacs "$@"
 ; }
 
 
@@ -267,13 +272,11 @@ while still defaulting to the launching shell's directory outside of one."
   :hook (dired-mode . auto-revert-mode))
 
 ;; package for sidebar directory exploration
-(use-package dired-sidebar
-  :commands dired-sidebar-toggle-sidebar
+(use-package dirvish
+  :ensure t
+  :commands (dirvish-side)
   :config
-  (advice-add 'dired-sidebar-toggle-sidebar :after
-	      (lambda (&rest _)
-		(when (dired-sidebar-showing-sidebar-p)
-		  (dired-sidebar-refresh-buffer)))))
+  (dirvish-side-follow-mode))
 
 ;; package for jumping between windows using displayed key mappings
 (use-package ace-window
@@ -343,6 +346,25 @@ while still defaulting to the launching shell's directory outside of one."
         '((sbcl ("sbcl") :coding-system utf-8-unix)
           (qlot ("qlot" "exec" "ros" "run") :coding-system utf-8-unix)))
   :hook (lisp-mode . sly-editing-mode))
+
+;; completion popup with TAB/S-TAB cycling; sly-mrepl's own TAB handler
+;; automatically prefers `company-complete' over plain `completion-at-point'
+;; once company-mode is active (see `sly-mrepl-indent-and-complete-symbol')
+(use-package company
+  :ensure t
+  :config
+  (setq company-idle-delay 0)
+  (global-company-mode))
+
+(use-package company-box
+  :ensure t
+  :hook (company-mode . company-box-mode))
+
+;; the sly inferior-lisp buffer is comint-mode, which evil defaults to
+;; insert state (`evil-insert-state-modes'); it's a startup/log buffer,
+;; not somewhere you type, so start it in normal state instead
+(add-hook 'sly-inferior-process-start-hook
+          (lambda () (evil-normal-state)))
 
 (defun sly-qlot-system-name (root)
   "Guess the ASDF system to load for the qlot project at ROOT.

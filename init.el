@@ -682,6 +682,17 @@ sae-cl/sae-cl.asd); falls back to any .asd file found in ROOT."
 
 (global-display-line-numbers-mode 1)
 
+;; warn on Common Lisp lines over 100 columns: a vertical guide line,
+;; plus highlighting on the actual overlong portion of any line that
+;; already crosses it
+(add-hook 'lisp-mode-hook
+          (lambda ()
+            (setq-local fill-column 100)
+            (setq-local whitespace-line-column 100)
+            (setq-local whitespace-style '(face lines-tail))
+            (display-fill-column-indicator-mode 1)
+            (whitespace-mode 1)))
+
 ;; color themes
 (use-package doom-themes
   :ensure t

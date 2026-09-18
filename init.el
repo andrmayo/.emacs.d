@@ -529,7 +529,7 @@ similar to a quickfix or trouble.nvim-style diagnostics list."
             (setq-local whitespace-style '(face lines-tail))
             (display-fill-column-indicator-mode 1)
             (whitespace-mode 1)))
-/
+
 ;;; ============================================================================
 ;;; EVIL
 ;;; ============================================================================

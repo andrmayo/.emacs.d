@@ -347,6 +347,13 @@ while still defaulting to the launching shell's directory outside of one."
           (qlot ("qlot" "exec" "ros" "run") :coding-system utf-8-unix)))
   :hook (lisp-mode . sly-editing-mode))
 
+;; when the debugger (sly-db) opens on a runtime error, jump to and
+;; briefly flash the erroring frame's source location automatically,
+;; rather than requiring a manual `v' press on the frame
+(add-hook 'sly-db-hook
+          (lambda ()
+            (ignore-errors (sly-db-show-frame-source 0))))
+
 ;; completion popup with TAB/S-TAB cycling; sly-mrepl's own TAB handler
 ;; automatically prefers `company-complete' over plain `completion-at-point'
 ;; once company-mode is active (see `sly-mrepl-indent-and-complete-symbol')
@@ -733,6 +740,31 @@ sae-cl/sae-cl.asd); falls back to any .asd file found in ROOT."
           vterm-mode))
   (popper-mode +1)
   (popper-echo-mode +1))
+
+;;; ============================================================================
+;;; SCROLLING
+;;; ============================================================================
+
+(setq hscroll-margin 2
+      hscroll-step 1
+      ;; Emacs spends too much effort recentering the screen if you scroll the
+      ;; cursor more than N lines past window edges (where N is the settings of
+      ;; `scroll-conservatively'). This is especially slow in larger files
+      ;; during large-scale scrolling commands. If kept over 100, the window is
+      ;; never automatically recentered.
+      scroll-conservatively 101
+      scroll-margin 0
+      scroll-preserve-screen-position t
+      ;; Reduce cursor lag by a tiny bit by not auto-adjusting `window-vscroll'
+      ;; for tall lines.
+      auto-window-vscroll nil
+      ;; mouse
+      mouse-wheel-scroll-amount '(5 ((shift) . 2))
+      mouse-wheel-progressive-speed nil)  ; don't accelerate scrolling
+
+;; Remove hscroll-margin in shells, otherwise it causes jumpiness
+(dolist (hook '(eshell-mode-hook term-mode-hook vterm-mode-hook))
+  (add-hook hook (lambda () (setq-local hscroll-margin 0))))
 
 ;;; ============================================================================
 ;;; FURTHER LINTING, SPELLCHECKING, ETC

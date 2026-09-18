@@ -335,6 +335,10 @@ while still defaulting to the launching shell's directory outside of one."
 
 (use-package paredit)
 
+(use-package which-key
+  :config
+  (which-key-mode))
+
 ;;; ============================================================================
 ;;; Common Lisp (Sly)
 ;;; ============================================================================
@@ -395,6 +399,38 @@ sae-cl/sae-cl.asd); falls back to any .asd file found in ROOT."
         (kill-buffer buf)))))
 
 (local-leader-def "wc" 'sly-kill-compile-buffers)
+
+(defun sly-toggle-compilation-window ()
+  "Toggle a bottom-docked window showing Sly's compiler notes.
+The buffer is `compilation-mode', so RET jumps to a note's source
+location and `compilation-next-error'/`-previous-error' (bound via
+`evil-collection-compile' to gj/gk and TAB/S-TAB) cycle through them,
+similar to a quickfix or trouble.nvim-style diagnostics list."
+  (interactive)
+  (let* ((name (sly-buffer-name :compilation))
+         (buf (get-buffer name))
+         (win (and buf (get-buffer-window buf t))))
+    (cond
+     (win (delete-window win))
+     ((not buf) (sly-message "No compilation notes yet -- compile something first."))
+     (t (display-buffer
+         buf
+         '((display-buffer-reuse-window display-buffer-in-side-window)
+           (side . bottom)
+           (window-height . 0.25)
+           (dedicated . t)))))))
+
+;; sly-next-note/sly-previous-note (M-n/M-p by default) already echo
+;; the note's message when jumping to it -- these just give leader-key
+;; aliases for the same thing
+(local-leader-def
+  :keymaps 'lisp-mode-map
+  "nn" (list :def 'sly-next-note :which-key "next compiler note (M-n)")
+  "np" (list :def 'sly-previous-note :which-key "previous compiler note (M-p)"))
+
+(leader-def
+  :keymaps 'lisp-mode-map
+  "xx" 'sly-toggle-compilation-window)
 
 (local-leader-def
   :keymaps 'lisp-mode-map
@@ -482,10 +518,18 @@ sae-cl/sae-cl.asd); falls back to any .asd file found in ROOT."
   "mx" (list :def 'sly-eval-defun :which-key "eval defun (C-M-x)")
   "xe" (list :def 'sly-eval-last-expression :which-key "eval last expression (C-x C-e)"))
 
-(use-package which-key
-  :config
-  (which-key-mode))
 
+;; warn on Common Lisp lines over 100 columns: a vertical guide line,
+;; plus highlighting on the actual overlong portion of any line that
+;; already crosses it
+(add-hook 'lisp-mode-hook
+          (lambda ()
+            (setq-local fill-column 100)
+            (setq-local whitespace-line-column 100)
+            (setq-local whitespace-style '(face lines-tail))
+            (display-fill-column-indicator-mode 1)
+            (whitespace-mode 1)))
+/
 ;;; ============================================================================
 ;;; EVIL
 ;;; ============================================================================
@@ -493,7 +537,7 @@ sae-cl/sae-cl.asd); falls back to any .asd file found in ROOT."
 (use-package evil
   :init
   (setq evil-want-keybinding nil)
-  (setq evil-want-C-i-jump nil)
+  (setq evil-want-C-i-jump t)
   (setq evil-want-C-u-scroll t)
   :config
   (setq evil-want-visual-char-semi-exclusive t)
@@ -522,7 +566,7 @@ sae-cl/sae-cl.asd); falls back to any .asd file found in ROOT."
              (add-hook 'smartparens-enabled-hook #'evil-smartparens-mode))
 
 (use-package evil-collection)
-(evil-collection-init '(dired magit sly vterm))
+(evil-collection-init '(dired magit sly vterm compile))
 
 ;; so that "a" can create files and directories
 (defun dired-create-dir-or-file ()
@@ -681,17 +725,6 @@ sae-cl/sae-cl.asd); falls back to any .asd file found in ROOT."
 ;;; ============================================================================
 
 (global-display-line-numbers-mode 1)
-
-;; warn on Common Lisp lines over 100 columns: a vertical guide line,
-;; plus highlighting on the actual overlong portion of any line that
-;; already crosses it
-(add-hook 'lisp-mode-hook
-          (lambda ()
-            (setq-local fill-column 100)
-            (setq-local whitespace-line-column 100)
-            (setq-local whitespace-style '(face lines-tail))
-            (display-fill-column-indicator-mode 1)
-            (whitespace-mode 1)))
 
 ;; color themes
 (use-package doom-themes

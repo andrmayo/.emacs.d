@@ -271,12 +271,25 @@ while still defaulting to the launching shell's directory outside of one."
   :ensure nil
   :hook (dired-mode . auto-revert-mode))
 
-;; package for sidebar directory exploration
+;; package for sidebar directory exploration.
+;; `dirvish-override-dired-mode' is required, not just cosmetic: it
+;; installs advice on `dired-noselect' that attaches Dirvish's session
+;; tracking/attributes/rendering to any buffer created through it --
+;; including the buffer `dirvish-side' itself builds internally via
+;; `find-alternate-file'. Without it, `dirvish-side' silently degrades
+;; to a plain, undecorated Dired buffer (no icons, tree, hide-details).
 (use-package dirvish
   :ensure t
   :commands (dirvish-side)
   :config
-  (dirvish-side-follow-mode))
+  (dirvish-override-dired-mode)
+  (dirvish-side-follow-mode)
+  ;; bare filenames only, no file-size/count clutter in the fringe.
+  ;; `dirvish-side-attributes' is a *separate* variable from
+  ;; `dirvish-attributes' (its defcustom only captured that value once,
+  ;; at definition time), so both need setting for the sidebar.
+  (setq dirvish-attributes nil)
+  (setq dirvish-side-attributes nil))
 
 ;; package for jumping between windows using displayed key mappings
 (use-package ace-window

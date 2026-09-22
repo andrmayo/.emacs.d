@@ -79,6 +79,7 @@
 
     (leader-def
       "E" 'dirvish-side
+      "f" '(:ignore t :which-key "files")
       "fd" 'session-fzf
       "fc" (lambda () (interactive) (find-file user-init-file))
       "/" 'counsel-rg

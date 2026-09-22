@@ -82,7 +82,9 @@
       "fd" 'session-fzf
       "fc" (lambda () (interactive) (find-file user-init-file))
       "/" 'counsel-rg
-      "bd" 'kill-current-buffer)
+      "bd" 'kill-current-buffer
+      "m" '(:ignore t :which-key "magit")
+      "mg" (list :def 'magit-status :which-key "magit status"))
     
     (local-leader-def
       :keymaps 'startup-mode-map

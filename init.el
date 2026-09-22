@@ -529,7 +529,15 @@ similar to a quickfix or trouble.nvim-style diagnostics list."
   "ck" (list :def 'sly-compile-and-load-file :which-key "compile+load file (C-c C-k)")
   "cl" (list :def 'sly-load-file :which-key "load file (C-c C-l)")
   "mx" (list :def 'sly-eval-defun :which-key "eval defun (C-M-x)")
-  "xe" (list :def 'sly-eval-last-expression :which-key "eval last expression (C-x C-e)"))
+  "xe" (list :def 'sly-eval-last-expression :which-key "eval last expression (C-x C-e)")
+  ;; sly-stickers: mirror the letters from C-c C-s <x>
+  "s" '(:ignore t :which-key "stickers")
+  "ss" (list :def 'sly-stickers-dwim :which-key "toggle sticker at point (C-c C-s C-s)")
+  "sd" (list :def 'sly-stickers-clear-defun-stickers :which-key "clear stickers in defun (C-c C-s C-d)")
+  "sk" (list :def 'sly-stickers-clear-buffer-stickers :which-key "clear stickers in buffer (C-c C-s C-k)")
+  "sS" (list :def 'sly-stickers-fetch :which-key "fetch sticker recordings (C-c C-s S)")
+  "sF" (list :def 'sly-stickers-forget :which-key "forget sticker recordings (C-c C-s F)")
+  "sr" (list :def 'sly-stickers-replay :which-key "replay sticker recordings (C-c C-s C-r)"))
 
 
 ;; warn on Common Lisp lines over 100 columns: a vertical guide line,

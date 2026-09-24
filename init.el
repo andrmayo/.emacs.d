@@ -393,6 +393,69 @@ while still defaulting to the launching shell's directory outside of one."
 (add-hook 'sly-inferior-process-start-hook
           (lambda () (evil-normal-state)))
 
+;; Roswell's prebuilt sbcl-bin ships no Lisp source and has the build
+;; dir (/tmp/sbcl) baked into its source paths, so M-. / gd on CL and
+;; SBCL-internal symbols open nonexistent files.  Keep a matching
+;; source checkout under ~/.local/share and point SBCL at it.
+(defvar sly-sbcl-source-root (expand-file-name "~/.local/share/")
+  "Directory holding per-version SBCL source checkouts (sbcl-VERSION/).")
+
+(defvar sly-ros-sbcl-version nil
+  "Cached version of the SBCL that `ros run' uses, e.g. \"2.6.8\".")
+
+(defun sly-ros-sbcl-version ()
+  "Return the plain x.y.z version of the SBCL `ros run' uses, or nil."
+  (or sly-ros-sbcl-version
+      (setq sly-ros-sbcl-version
+            (ignore-errors
+              (with-temp-buffer
+                (call-process "ros" nil t nil "run" "--" "--noinform"
+                              "--non-interactive" "--eval"
+                              "(princ (lisp-implementation-version))")
+                (goto-char (point-min))
+                (when (re-search-forward "[0-9]+\\.[0-9]+\\.[0-9]+" nil t)
+                  (match-string 0)))))))
+
+(defun sly-sbcl-source-dir ()
+  "Return the SBCL source dir matching ros's SBCL, cloning it if missing.
+Returns nil (after a message) if the version or the clone is unavailable."
+  (let ((version (sly-ros-sbcl-version)))
+    (when version
+      (let ((dir (expand-file-name (concat "sbcl-" version "/")
+                                   sly-sbcl-source-root)))
+        (unless (file-exists-p (expand-file-name "src/code/package.lisp" dir))
+          (message "Cloning SBCL %s source into %s ..." version dir)
+          (when (file-directory-p dir)
+            (delete-directory dir t))
+          (make-directory sly-sbcl-source-root t)
+          (unless (zerop (call-process
+                          "git" nil nil nil "clone" "--quiet" "--depth" "1"
+                          "--branch" (concat "sbcl-" version)
+                          "https://github.com/sbcl/sbcl" dir))
+            (message "Failed to clone SBCL %s source; gd on CL symbols won't work"
+                     version)
+            (when (file-directory-p dir)
+              (delete-directory dir t))))
+        (and (file-exists-p (expand-file-name "src/code/package.lisp" dir))
+             dir)))))
+
+(defun sly-qlot-program-args ()
+  "Args for `qlot', pointing SBCL's source location at a matching checkout."
+  (let ((dir (sly-sbcl-source-dir)))
+    (append '("exec" "ros" "run")
+            (when dir
+              (list "--" "--eval"
+                    (format "(sb-ext:set-sbcl-source-location #p%S)" dir))))))
+
+;; the `qlot' entry of `sly-lisp-implementations' (used by C-u M-x sly)
+;; is refreshed just before the implementation is chosen
+(defun sly-refresh-qlot-implementation (&rest _)
+  (when current-prefix-arg
+    (setf (alist-get 'qlot sly-lisp-implementations)
+          (list (cons "qlot" (sly-qlot-program-args))
+                :coding-system 'utf-8-unix))))
+(advice-add 'sly :before #'sly-refresh-qlot-implementation)
+
 (defun sly-qlot-system-name (root)
   "Guess the ASDF system to load for the qlot project at ROOT.
 Prefers an .asd file matching ROOT's own directory name (e.g.
@@ -466,7 +529,7 @@ similar to a quickfix or trouble.nvim-style diagnostics list."
                            (name (sly-qlot-system-name root))
                            (system (intern (concat ":" name))))
                       (sly-start :program "qlot"
-                                 :program-args '("exec" "ros" "run")
+                                 :program-args (sly-qlot-program-args)
                                  :coding-system 'utf-8-unix
                                  :directory root
                                  :name 'qlot
@@ -489,7 +552,7 @@ similar to a quickfix or trouble.nvim-style diagnostics list."
   "qq" (list :def (lambda ()
                     (interactive)
                     (sly-start :program "qlot"
-                               :program-args '("exec" "ros" "run")
+                               :program-args (sly-qlot-program-args)
                                :coding-system 'utf-8-unix
                                :directory (session-root)
                                :name 'qlot))
@@ -499,7 +562,7 @@ similar to a quickfix or trouble.nvim-style diagnostics list."
                     (let* ((root (session-root))
                            (system (intern (concat ":" (sly-qlot-system-name root)))))
                       (sly-start :program "qlot"
-                                 :program-args '("exec" "ros" "run")
+                                 :program-args (sly-qlot-program-args)
                                  :coding-system 'utf-8-unix
                                  :directory root
                                  :name 'qlot

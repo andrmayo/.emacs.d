@@ -851,16 +851,48 @@ similar to a quickfix or trouble.nvim-style diagnostics list."
   :ensure t
   :hook ((emacs-lisp-mode lisp-mode) . page-break-lines-mode))
 
-(defun insert-page-break ()
-  "Insert a form-feed (^L) on its own line at point, rendered as a rule."
+(defun insert-page-break-below ()
+  "Insert a form-feed (^L) line below the current line and move onto it."
   (interactive)
-  (unless (bolp) (insert "\n"))
-  (insert "\f\n"))
+  (end-of-line)
+  (insert "\n\f"))
+
+(defun insert-page-break-above ()
+  "Insert a form-feed (^L) line above the current line and move onto it."
+  (interactive)
+  (beginning-of-line)
+  (insert "\f\n")
+  (forward-line -1))
+
+(defun next-page-start ()
+  "Move to the next line beginning with a form-feed (^L)."
+  (interactive)
+  (let ((pos (save-excursion
+               (forward-line 1)
+               (when (re-search-forward "^\f" nil t)
+                 (line-beginning-position)))))
+    (if pos (goto-char pos) (message "No next page break"))))
+
+(defun previous-page-start ()
+  "Move to the start of the current page, or the previous one if already there.
+A page starts at a line beginning with a form-feed (^L); the first page
+starts at the beginning of the buffer."
+  (interactive)
+  (let ((pos (save-excursion
+               (beginning-of-line)
+               (if (re-search-backward "^\f" nil t)
+                   (line-beginning-position)
+                 (unless (bobp) (point-min))))))
+    (if pos (goto-char pos) (message "No previous page break"))))
 
 (local-leader-def
   :keymaps '(emacs-lisp-mode-map lisp-mode-map)
   "f" '(:ignore t :which-key "Formatting")
-  "fp" (list :def 'insert-page-break :which-key "Page break"))
+  "fp" '(:ignore t :which-key "Page")
+  "fpp" (list :def 'insert-page-break-below :which-key "Page break below")
+  "fpP" (list :def 'insert-page-break-above :which-key "Page break above")
+  "fpj" (list :def 'next-page-start :which-key "Page down")
+  "fpk" (list :def 'previous-page-start :which-key "Page up"))
 
 ;; dim the background of non-file buffers (sidebar, REPLs, popups)
 ;; so the buffer you're actually editing stands out

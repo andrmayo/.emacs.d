@@ -845,6 +845,23 @@ similar to a quickfix or trouble.nvim-style diagnostics list."
   :ensure t
   :hook (prog-mode . rainbow-delimiters-mode))
 
+;; render form-feed (^L) characters as horizontal rules; enabled per-buffer
+;; only in Elisp/Common Lisp modes, so the package loads on first such file
+(use-package page-break-lines
+  :ensure t
+  :hook ((emacs-lisp-mode lisp-mode) . page-break-lines-mode))
+
+(defun insert-page-break ()
+  "Insert a form-feed (^L) on its own line at point, rendered as a rule."
+  (interactive)
+  (unless (bolp) (insert "\n"))
+  (insert "\f\n"))
+
+(local-leader-def
+  :keymaps '(emacs-lisp-mode-map lisp-mode-map)
+  "f" '(:ignore t :which-key "Formatting")
+  "fp" (list :def 'insert-page-break :which-key "Page break"))
+
 ;; dim the background of non-file buffers (sidebar, REPLs, popups)
 ;; so the buffer you're actually editing stands out
 (use-package solaire-mode

@@ -796,6 +796,33 @@ similar to a quickfix or trouble.nvim-style diagnostics list."
 ;; (matches neovim's <leader>ss, LSP document symbols)
 (leader-def "ss" 'counsel-imenu)
 
+;; imenu for Lisp: list classes, generics, methods, macros etc., not just
+;; functions. Each category matches any top-level form whose operator *starts
+;; with* the keyword (e.g. defclass, defclass*, cl-defmethod), so macros that
+;; define classes show up too.
+(defun my/lisp-imenu-expression ()
+  "Return an `imenu-generic-expression' covering common definition forms."
+  (let* ((name "\\(?:(setf[ \t]+[^ \t\n()]+)\\|[^ \t\n()]+\\)")
+         (rx-for (lambda (ops)
+                   (concat "^(\\(?:cl-\\)?\\(?:" ops "\\)[^ \t\n()]*[ \t]+\\("
+                           name "\\)"))))
+    `(("Classes"   ,(funcall rx-for "defclass\\|define-class") 1)
+      ("Generics"  ,(funcall rx-for "defgeneric") 1)
+      ("Methods"   ,(funcall rx-for "defmethod") 1)
+      ("Macros"    ,(funcall rx-for "defmacro\\|define-compiler-macro\\|define-modify-macro") 1)
+      ("Functions" ,(funcall rx-for "defun\\|defsubst\\|defalias") 1)
+      ("Types"     ,(funcall rx-for "defstruct\\|deftype\\|define-condition") 1)
+      ("Variables" ,(funcall rx-for "defvar\\|defparameter\\|defconstant\\|defcustom\\|defconst\\|defgroup\\|defface") 1)
+      ("Sections"  ,(funcall rx-for "defsection") 1)
+      ("Packages"  ,(funcall rx-for "defpackage\\|in-package\\|define-package") 1))))
+
+(dolist (hook '(lisp-mode-hook emacs-lisp-mode-hook))
+  (add-hook hook
+            (lambda ()
+              (setq-local imenu-generic-expression (my/lisp-imenu-expression))
+              (setq-local imenu-create-index-function
+                          #'imenu-default-create-index-function))))
+
 ;; show counsel-imenu as a floating window (like `float-term-toggle')
 ;; instead of in the minibuffer; other ivy/counsel prompts are unaffected
 (use-package ivy-posframe

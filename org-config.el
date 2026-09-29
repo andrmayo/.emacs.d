@@ -1,6 +1,5 @@
-;; automatically wrap lines to fill-column while typing
+;; fill-column is used only by the explicit \f fill command (no auto-fill)
 (setq-default fill-column 100)
-(add-hook 'org-mode-hook #'auto-fill-mode)
 
 (use-package evil-org
     :ensure t
@@ -30,29 +29,47 @@
   :which-key "latex preview all")
 
 (defun org-fill-buffer ()
-  "Fill the buffer, skipping src/example/export/comment blocks."
+  "Fill the buffer, skipping src/example/export/comment blocks and tables."
   (interactive)
   (save-excursion
     (let ((case-fold-search t)
-          (start (copy-marker (point-min)))
+          (begin-re "^[ \t]*#\\+begin_\\(?:src\\|example\\|export\\|comment\\)")
           (end-re "^[ \t]*#\\+end_\\(?:src\\|example\\|export\\|comment\\)")
-          (begin-re "^[ \t]*#\\+begin_\\(?:src\\|example\\|export\\|comment\\)"))
+          (skip-re "^[ \t]*\\(?:|\\|#\\+tblfm:\\)")
+          (in-block nil)
+          (start nil)
+          regions)
       (goto-char (point-min))
-      (while (re-search-forward begin-re nil t)
-        (let ((block-beg (copy-marker (line-beginning-position))))
-          (when (> block-beg start)
-            (fill-region start block-beg))
-          (if (re-search-forward end-re nil t)
-              (progn (forward-line 1) (set-marker start (point)))
-            (set-marker start (point-max))
-            (goto-char (point-max)))))
-      (when (< start (point-max))
-        (fill-region start (point-max))))))
+      (while (not (eobp))
+        (let ((skip (cond (in-block (when (looking-at end-re) (setq in-block nil)) t)
+                          ((looking-at begin-re) (setq in-block t) t)
+                          (t (looking-at skip-re)))))
+          (cond ((and skip start)
+                 (push (cons start (copy-marker (point))) regions)
+                 (setq start nil))
+                ((and (not skip) (not start))
+                 (setq start (copy-marker (point))))))
+        (forward-line 1))
+      (when start (push (cons start (copy-marker (point-max))) regions))
+      ;; regions is in reverse order, so filling proceeds back to front
+      (dolist (r regions)
+        (fill-region (car r) (cdr r))))))
 
 (local-leader-def
   :keymaps 'org-mode-map
   "f" #'org-fill-buffer
   :which-key "fill buffer")
+
+(defun org-toggle-auto-fill ()
+  "Toggle `auto-fill-mode' and report the new state."
+  (interactive)
+  (auto-fill-mode 'toggle)
+  (message "Auto-fill %s" (if auto-fill-function "enabled" "disabled")))
+
+(local-leader-def
+  :keymaps 'org-mode-map
+  "F" #'org-toggle-auto-fill
+  :which-key "toggle auto-fill")
 
 (defun org-toggle-window-wrap ()
   (interactive)

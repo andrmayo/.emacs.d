@@ -302,7 +302,16 @@ while still defaulting to the launching shell's directory outside of one."
   :defer t)
 
 ;; similar to neogit in nvim
-(use-package magit)
+(defun my/magit-quit-and-kill-all (&rest _)
+  "Quit magit, killing every magit buffer (status, diff, log, process...) of this repo."
+  (let ((buffers (magit-mode-get-buffers)))
+    (magit-mode-quit-window t)
+    (mapc #'kill-buffer (seq-filter #'buffer-live-p buffers))))
+
+(use-package magit
+  :custom
+  ;; kill all of the repo's magit buffers when quitting instead of just burying one
+  (magit-bury-buffer-function #'my/magit-quit-and-kill-all))
 
 ;; show git change indicators in left margin, similar to gitsigns in nvim
 (use-package diff-hl)

@@ -84,6 +84,9 @@
       "fc" (lambda () (interactive) (find-file user-init-file))
       "/" 'counsel-rg
       "bd" 'kill-current-buffer
+      ;; H/L cycle tabs within a group; these switch between groups
+      "H" 'centaur-tabs-backward-group
+      "L" 'centaur-tabs-forward-group
       "m" '(:ignore t :which-key "magit")
       "mg" (list :def 'magit-status :which-key "magit status"))
     
@@ -941,6 +944,8 @@ similar to a quickfix or trouble.nvim-style diagnostics list."
   (setq centaur-tabs-icon-type 'nerd-icons)
   (setq centaur-tabs-set-bar 'under)
   (setq centaur-tabs-set-modified-marker t)
+  ;; H/L wrap within the current group instead of spilling into the next one
+  (setq centaur-tabs-cycle-scope 'tabs)
   :config
   (centaur-tabs-mode t))
 

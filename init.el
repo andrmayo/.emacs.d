@@ -575,6 +575,7 @@ while still defaulting to the launching shell's directory outside of one."
 (dolist (hook '(lisp-mode-hook emacs-lisp-mode-hook))
   (add-hook hook
             (lambda ()
+              (setq-local indent-tabs-mode nil)
               (setq-local imenu-generic-expression (my/lisp-imenu-expression))
               (setq-local imenu-create-index-function
                           #'imenu-default-create-index-function))))

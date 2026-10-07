@@ -363,6 +363,12 @@ while still defaulting to the launching shell's directory outside of one."
 
 (use-package paredit)
 
+;; Honor .editorconfig files (built in since Emacs 30)
+(use-package editorconfig
+  :ensure nil
+  :config
+  (editorconfig-mode 1))
+
 (use-package which-key
   :config
   (which-key-mode))

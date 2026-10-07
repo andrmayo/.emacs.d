@@ -783,5 +783,21 @@ starts at the beginning of the buffer."
 ;; load org-mode config
 (load (expand-file-name "org-config.el" user-emacs-directory))
 
+;; ensure Slime is installed but without hooks
+(use-package slime
+  :ensure t
+  :defer t
+  :init
+  (remove-hook 'lisp-mode-hook 'slime-lisp-mode-hook))
+
+;; emacs-w3m: required by mgl-pax.el (browsing PAX docs inside Emacs).
+;; Needs the `w3m' executable too (installed at /usr/bin/w3m).
+(use-package w3m
+  :ensure t
+  :defer t)
+
 ;; load Common Lisp (Sly) config
 (load (expand-file-name "sly-config.el" user-emacs-directory))
+
+(provide 'init)
+;;; init.el ends here

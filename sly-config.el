@@ -8,6 +8,25 @@
           (qlot ("qlot" "exec" "ros" "run") :coding-system utf-8-unix)))
   :hook (lisp-mode . sly-editing-mode))
 
+;; mgl-pax setup to work with Sly
+(use-package mgl-pax
+  :load-path "~/Projects/mgl-pax/src"
+  :after sly
+  :demand t
+  :config
+  (mgl-pax-hijack-sly-doc-keys))
+
+(setq sly-enable-evaluate-in-emacs t)
+
+;; To pull in packages like hunchentoot for mgl-pax,
+;; create another .asd file like `dev.asd' with:
+;; (asdf:defsystem "mgl-dev-deps"
+;;   :description "Dev-only dependencies for qlot."
+;;   :depends-on ("mgl-pax/full"))
+
+;; if using a local branch of mgl-pax, put something like `local mgl-pax ~/Projects/mgl-pax/'
+;; in the qlfile
+
 ;; use the CL-aware indenter (sly-cl-indent.el, loaded by the default
 ;; `sly-fancy' contrib) rather than the generic `lisp-indent-function', which
 ;; treats unknown macros as function calls and over-indents them.  It only
@@ -306,6 +325,10 @@ similar to a quickfix or trouble.nvim-style diagnostics list."
   :keymaps 'lisp-mode-map
   "q" '(:ignore t :which-key "qlot")
   "c" '(:ignore t :which-key "compile/eval")
+  "m" '(:ignore t :which-key "mgl-pax")
+  "n" '(:ignore t :which-key "compiler notes")
+  "s" '(:ignore t :which-key "stickers")
+  "w" '(:ignore t :which-key "sly buffers")
   "r" (list :def (lambda () (interactive)
                    (let ((current-prefix-arg '-))
                      (call-interactively #'sly)))
@@ -334,16 +357,26 @@ similar to a quickfix or trouble.nvim-style diagnostics list."
   "cr" (list :def 'sly-eval-region :which-key "eval region (C-c C-r)")
   "ck" (list :def 'sly-compile-and-load-file :which-key "compile+load file (C-c C-k)")
   "cl" (list :def 'sly-load-file :which-key "load file (C-c C-l)")
-  "mx" (list :def 'sly-eval-defun :which-key "eval defun (C-M-x)")
-  "xe" (list :def 'sly-eval-last-expression :which-key "eval last expression (C-x C-e)")
+  "cx" (list :def 'sly-eval-defun :which-key "eval defun (C-M-x)")
+  "ce" (list :def 'sly-eval-last-expression :which-key "eval last expression (C-x C-e)")
   ;; sly-stickers: mirror the letters from C-c C-s <x>
-  "s" '(:ignore t :which-key "stickers")
   "ss" (list :def 'sly-stickers-dwim :which-key "toggle sticker at point (C-c C-s C-s)")
   "sd" (list :def 'sly-stickers-clear-defun-stickers :which-key "clear stickers in defun (C-c C-s C-d)")
   "sk" (list :def 'sly-stickers-clear-buffer-stickers :which-key "clear stickers in buffer (C-c C-s C-k)")
   "sS" (list :def 'sly-stickers-fetch :which-key "fetch sticker recordings (C-c C-s S)")
   "sF" (list :def 'sly-stickers-forget :which-key "forget sticker recordings (C-c C-s F)")
-  "sr" (list :def 'sly-stickers-replay :which-key "replay sticker recordings (C-c C-s C-r)"))
+  "sr" (list :def 'sly-stickers-replay :which-key "replay sticker recordings (C-c C-s C-r)")
+  "m." (list :def 'mgl-pax-document :which-key "mgl-pax-document")
+  "ma" (list :def 'mgl-pax-apropos :which-key "mgl-pax-apropos")
+  "mz" (list :def 'mgl-pax-apropos-all :which-key "mgl-pax-apropos-all")
+  "mp" (list :def 'mgl-pax-apropos-package :which-key "mgl-pax-apropos-package")
+  "md" (list :def 'mgl-pax-hideshow-documentation :which-key "fold/unfold docs")
+  "mc" (list :def 'mgl-pax-hideshow-comments :which-key "fold/unfold comments")
+  "mv" (list :def 'mgl-pax-current-definition-toggle-view :which-key "toggle definition view")
+  "mr" (list :def 'mgl-pax-retranscribe-region :which-key "retranscribe region")
+  "mR" (list :def 'mgl-pax-reload :which-key "reload PAX in Lisp")
+  "mt" (list :def 'mgl-pax-transcribe-last-expression :which-key "transcribe last expression")
+  "mu" (list :def 'mgl-pax-edit-parent-section :which-key "edit parent section"))
 
 
 ;; warn on Common Lisp lines over 100 columns: a vertical guide line,

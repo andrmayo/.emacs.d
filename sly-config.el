@@ -22,7 +22,7 @@
 ;; create another .asd file like `dev.asd' with:
 ;; (asdf:defsystem "mgl-dev-deps"
 ;;   :description "Dev-only dependencies for qlot."
-;;   :depends-on ("mgl-pax/full"))
+;;   :depends-on (#:mgl-pax/full))
 
 ;; if using a local branch of mgl-pax, put something like `local mgl-pax ~/Projects/mgl-pax/'
 ;; in the qlfile

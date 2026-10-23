@@ -1,3 +1,10 @@
+;;; init.el --- early-init for emacs -*- lexical-binding: t; -*-
+
+;;; Commentary:
+;; Early init for performance.
+
+;;; Code:
+
 ;;; ============================================================================
 ;;; EMACS CORE PERFORMANCE SETTINGS
 ;;; ============================================================================
@@ -17,3 +24,7 @@
 (setq package-enable-at-startup nil)
 
 (push '(tool-bar-lines . 0) default-frame-alist)
+
+(provide 'early-init)
+;;; early-init.el ends here
+

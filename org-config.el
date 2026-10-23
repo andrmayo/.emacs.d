@@ -1,3 +1,10 @@
+;;; init.el --- org-mode config for emacs -*- lexical-binding: t; -*-
+
+;;; Commentary:
+;; Configuration for org mode goes here.
+
+;;; Code:
+
 ;; fill-column is used only by the explicit \f fill command (no auto-fill)
 (setq-default fill-column 100)
 
@@ -83,3 +90,5 @@
   "w" #'org-toggle-window-wrap
   :which-key "toggle window-width wrap")
 
+(provide 'org-config)
+;;; org-config.el ends here

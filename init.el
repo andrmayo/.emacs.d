@@ -1,4 +1,5 @@
 ;;; init.el --- config for emacs -*- lexical-binding: t; -*-
+
 ;;; Commentary:
 ;; Configuration file for Emacs
 
@@ -376,6 +377,8 @@ while still defaulting to the launching shell's directory outside of one."
 ;;; ============================================================================
 ;;; EVIL
 ;;; ============================================================================
+
+(defvar evil-mode-buffers '())
 
 (use-package evil
   :init

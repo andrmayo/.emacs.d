@@ -10,7 +10,8 @@
 
 ;; mgl-pax setup to work with Sly
 (use-package mgl-pax
-  :load-path "~/Projects/mgl-pax/src"
+  :vc (:url "https://github.com/melisgl/mgl-pax"
+       :rev :newest)
   :after sly
   :demand t
   :config

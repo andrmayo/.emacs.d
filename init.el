@@ -206,14 +206,14 @@ while still defaulting to the launching shell's directory outside of one."
 ;   if emacsclient -e 't' 2>/dev/null; then
 ;     emacsclient --eval "$EMACS_TERM_ENV_CMD" >/dev/null 2>&1
 ;     emacsclient --eval "$dir_cmd" >/dev/null 2>&1 &
-;     emacsclient -c "$@" &
+;     emacsclient -c -n "$@" &
 ;     disown
 ;     sleep 0.25
 ;   else
 ;     command emacs --daemon
 ;     emacsclient --eval "$EMACS_TERM_ENV_CMD" >/dev/null 2>&1
 ;     emacsclient --eval "$dir_cmd" >/dev/null 2>&1 &
-;     emacsclient -c "$@" &
+;     emacsclient -c -n "$@" &
 ;     disown
 ;     sleep 0.5
 ;   fi

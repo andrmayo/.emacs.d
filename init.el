@@ -81,7 +81,10 @@
       "E" 'dirvish-side
       "f" '(:ignore t :which-key "files")
       "fd" 'session-fzf
-      "fc" (lambda () (interactive) (find-file user-init-file))
+      "fc" (lambda ()
+             (interactive)
+             (find-file user-init-file)
+             :which-key "edit config")
       "/" 'counsel-rg
       "bd" 'kill-current-buffer
       ;; H/L cycle tabs within a group; these switch between groups
@@ -93,6 +96,17 @@
     (local-leader-def
       :keymaps 'startup-mode-map
       "s" 'restore-desktop))
+
+;;; font size
+(set-face-attribute 'default nil
+                    :family "Iosevka Nerd Font Mono"
+                    :height 120)
+
+;;; Bind keys for resizing
+;;; NOTE: this overrides negative-argument,
+;;; so rebind that if ever needed
+(global-set-key (kbd "C-=") #'global-text-scale-adjust)
+(global-set-key (kbd "C--") #'global-text-scale-adjust)
 
 
 ;;; ============================================================================

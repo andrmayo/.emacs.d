@@ -524,6 +524,26 @@ while still defaulting to the launching shell's directory outside of one."
   (add-to-list 'treesit-language-source-alist
 		'(python "https://github.com/tree-sitter/tree-sitter-python")))
 
+;; Vim/Neovim-style jump list; C-o / C-i move through it.
+;; Evil only records jumps for commands flagged :jump, so also record a jump
+;; before the non-evil navigation commands used here.
+(use-package better-jumper
+  :demand t
+  :init
+  (setq better-jumper-context 'window
+        better-jumper-use-evil-jump-advice nil)
+  :config
+  (better-jumper-mode 1)
+  ;; evil's own jump motions (gg, G, /, %, xref, ...) feed better-jumper
+  (advice-add 'evil-set-jump :after
+              (lambda (&rest _) (better-jumper-set-jump)))
+  (dolist (cmd '(avy-goto-char treesit-jump-jump counsel-imenu
+                 counsel-rg counsel-fzf))
+    (advice-add cmd :before (lambda (&rest _) (better-jumper-set-jump))))
+  (evil-define-key '(normal motion) 'global
+    (kbd "C-o") #'better-jumper-jump-backward
+    (kbd "C-i") #'better-jumper-jump-forward))
+
 ;; replicate Flash treesitter-based selection and bind to "S"
 ;; add "inner" to treesit-jump-queries-filter-list if nodes are cluttered,
 ;; "inner" gives the inside of blocks

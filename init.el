@@ -341,28 +341,40 @@ while still defaulting to the launching shell's directory outside of one."
 (defvar float-term-buffer nil)
 (defvar float-term-frame nil)
 
+(defun float-term--fit (&optional parent)
+  "Size and position `float-term-frame' relative to PARENT.
+PARENT defaults to the frame's current parent frame."
+  (when (frame-live-p float-term-frame)
+    (let* ((parent (or parent (frame-parent float-term-frame)))
+	   (pw (frame-pixel-width parent))
+	   (ph (frame-pixel-height parent)))
+      (set-frame-parameter float-term-frame 'parent-frame parent)
+      (set-frame-size float-term-frame (/ pw 2) (/ ph 2) t)
+      (set-frame-position float-term-frame (/ pw 4) (/ ph 4)))))
+
+(defun float-term--refit (frame)
+  "Refit the floating terminal when its parent FRAME changes size."
+  (when (and (frame-live-p float-term-frame)
+	     (eq frame (frame-parent float-term-frame)))
+    (float-term--fit frame)))
+
+;; i3 resizes the parent frame, so follow it
+(add-hook 'window-size-change-functions #'float-term--refit)
+
 (defun float-term-toggle ()
   (interactive)
   (if (and (frame-live-p float-term-frame)
 	   (frame-visible-p float-term-frame))
       (make-frame-invisible float-term-frame)
-    (let* ((parent (selected-frame))
-	   (pw (frame-pixel-width parent))
-	   (ph (frame-pixel-height parent))
-	   (fw (/ pw 2))
-	   (fh (/ ph 2))
-	   (fl (/ pw 4))
-	   (ft (/ ph 4)))
+    (let ((parent (selected-frame)))
       (unless (frame-live-p float-term-frame)
 	(setq float-term-frame
-	      (make-frame `((parent-frame . ,parent)
-			    (width . (text-pixels . ,fw))
-			    (height . (text-pixels . ,fh))
-			    (left . ,fl)
-			    (top . ,ft)
-			    (minibuffer . nil)
+	      (make-frame `((minibuffer . nil)
 			    (undecorated . t)
-			    (internal-border-width . 2)))))
+			    (internal-border-width . 2)
+			    (parent-frame . ,parent)
+			    (visibility . nil)))))
+      (float-term--fit parent)
       (with-selected-frame float-term-frame
 	(unless (and float-term-buffer (buffer-live-p float-term-buffer))
 	  (setq float-term-buffer (vterm)))

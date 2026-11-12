@@ -89,3 +89,13 @@
   "w" #'org-toggle-window-wrap
   :which-key "toggle window-width wrap")
 
+(setq org-agenda-files '("~/org/agenda.org"
+                         "~/org/projects.org"))
+
+(leader-def
+  "a" '(:ignore t :which-key "agenda")
+  "aa" 'org-agenda)
+
+(provide 'org-config)
+;;; org-config.el ends here
+

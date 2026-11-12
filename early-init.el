@@ -1,3 +1,9 @@
+;;; early-init.el --- initial config -*- lexical-binding: t; -*-
+;;; Commentary:
+;; Initial configuration file for Emacs containing performance sensitive settings
+
+;;; Code:
+
 ;;; ============================================================================
 ;;; EMACS CORE PERFORMANCE SETTINGS
 ;;; ============================================================================
@@ -17,3 +23,6 @@
 (setq package-enable-at-startup nil)
 
 (push '(tool-bar-lines . 0) default-frame-alist)
+
+(provide 'early-init)
+;;; early-init.el ends here

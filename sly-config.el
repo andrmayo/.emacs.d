@@ -1,4 +1,6 @@
 ;;; sly-config.el --- Common Lisp (Sly) config -*- lexical-binding: t; -*-
+;;; Commentary:
+;; Configuration for Sly for Common Lisp development
 
 (use-package sly
   :init

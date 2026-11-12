@@ -1,3 +1,9 @@
+;;; org-config.el --- org-config for emacs -*- lexical-binding: t; -*-
+;;; Commentary:
+;; Configuration file org-mode for Emacs
+
+;;; Code:
+
 ;; fill-column is used only by the explicit \f fill command (no auto-fill)
 (setq-default fill-column 100)
 

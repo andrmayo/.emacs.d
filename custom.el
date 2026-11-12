@@ -1,3 +1,9 @@
+;;; custom.el --- auto-config for emacs -*- lexical-binding: t; -*-
+;;; Commentary:
+;; Used to store configuration generated automatically by the Customize interface
+
+;;; Code:
+
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
